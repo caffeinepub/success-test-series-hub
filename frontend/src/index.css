@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+
+    /* Navy palette */
+    --background: 0.14 0.04 255;
+    --foreground: 0.95 0.01 255;
+    --card: 0.18 0.05 255;
+    --card-foreground: 0.95 0.01 255;
+    --popover: 0.2 0.05 255;
+    --popover-foreground: 0.95 0.01 255;
+
+    /* Primary = gold */
+    --primary: 0.78 0.14 85;
+    --primary-foreground: 0.12 0.04 255;
+
+    /* Secondary = sky blue */
+    --secondary: 0.55 0.18 240;
+    --secondary-foreground: 0.98 0 0;
+
+    /* Muted */
+    --muted: 0.22 0.04 255;
+    --muted-foreground: 0.65 0.04 255;
+
+    /* Accent = gold tint */
+    --accent: 0.25 0.05 255;
+    --accent-foreground: 0.78 0.14 85;
+
+    /* Destructive */
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+
+    /* Borders */
+    --border: 0.28 0.06 255;
+    --input: 0.25 0.05 255;
+    --ring: 0.78 0.14 85;
+
+    /* Success green */
+    --success: 0.55 0.18 145;
+    --success-foreground: 0.98 0 0;
+
+    /* Gold */
+    --gold: 0.78 0.14 85;
+    --gold-light: 0.88 0.12 85;
+    --gold-dark: 0.65 0.16 75;
+
+    /* Navy shades */
+    --navy-deep: 0.10 0.05 255;
+    --navy-mid: 0.16 0.06 255;
+    --navy-light: 0.22 0.06 255;
+
+    /* Sky blue */
+    --sky: 0.60 0.20 240;
+
+    /* Chart colors */
+    --chart-1: 0.78 0.14 85;
+    --chart-2: 0.60 0.20 240;
+    --chart-3: 0.55 0.18 145;
+    --chart-4: 0.65 0.22 30;
+    --chart-5: 0.70 0.18 200;
+
+    --sidebar: 0.12 0.05 255;
+    --sidebar-foreground: 0.95 0.01 255;
+    --sidebar-primary: 0.78 0.14 85;
+    --sidebar-primary-foreground: 0.12 0.04 255;
+    --sidebar-accent: 0.20 0.05 255;
+    --sidebar-accent-foreground: 0.95 0.01 255;
+    --sidebar-border: 0.28 0.06 255;
+    --sidebar-ring: 0.78 0.14 85;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+}
+
+@layer utilities {
+  .text-gold {
+    color: oklch(var(--gold));
+  }
+  .bg-gold {
+    background-color: oklch(var(--gold));
+  }
+  .border-gold {
+    border-color: oklch(var(--gold));
+  }
+  .text-sky {
+    color: oklch(var(--sky));
+  }
+  .bg-navy-deep {
+    background-color: oklch(var(--navy-deep));
+  }
+  .bg-navy-mid {
+    background-color: oklch(var(--navy-mid));
+  }
+  .bg-navy-light {
+    background-color: oklch(var(--navy-light));
+  }
+  .btn-success {
+    background-color: oklch(var(--success));
+    color: oklch(var(--success-foreground));
+    @apply font-semibold px-6 py-2.5 rounded-md transition-all hover:opacity-90 active:scale-95;
+  }
+  .card-navy {
+    background-color: oklch(var(--card));
+    @apply border border-border rounded-xl shadow-lg;
+  }
+  .gold-gradient {
+    background: linear-gradient(135deg, oklch(0.78 0.14 85), oklch(0.88 0.12 85));
+  }
+  .section-divider {
+    @apply border-t border-border;
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-create-a-standalone-admin-login-page-at-route-admin-render-a-centered-login-card-with-username-and-password-fields-and-a-login-button-on-submit-call-the-backend-login-function-on-success-store-the-session-token-in-react-state-or-localstorage-and-redirect-to-the-admin-dashboard-on-failure-display-an-inline-error-message-invalid-credentials-style-the-page-to-match-the-existing-dark-navy-and-gold-theme",
+      "featureTitle": "Create a standalone Admin Login page at route /admin. Render a centered login card with Username and Password fields and a 'Login' button. On submit, call the backend login() function. On success, store the session token in React state (or localStorage) and redirect to the Admin Dashboard. On failure, display an inline error message 'Invalid credentials'. Style the page to match the existing dark navy and gold theme.",
+      "files": [
+        "frontend/src/hooks/useAuth.ts",
+        "frontend/src/pages/AdminLogin.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-19"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-an-admin-dashboard-page-at-route-admin-dashboard-accessible-only-when-a-valid-session-token-exists-redirect-to-admin-if-not-authenticated-render-a-sidebar-with-navigation-links-tests-rankers-contact-submissions-and-a-logout-button-logout-calls-the-backend-logout-function-clears-the-session-token-and-redirects-to-admin",
+      "featureTitle": "Create an Admin Dashboard page at route /admin/dashboard, accessible only when a valid session token exists (redirect to /admin if not authenticated). Render a sidebar with navigation links: Tests, Rankers, Contact Submissions, and a Logout button. Logout calls the backend logout() function, clears the session token, and redirects to /admin.",
+      "files": [
+        "frontend/src/components/AdminSidebar.tsx",
+        "frontend/src/pages/AdminDashboard.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-20"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-the-tests-management-panel-in-the-admin-dashboard-display-a-table-of-all-existing-tests-showing-id-title-and-category-include-an-add-test-button-that-opens-a-modal-form-with-fields-title-category-dropdown-upsc-bpsc-ssc-railway-state-exams-and-a-dynamic-questions-editor-add-remove-questions-each-with-question-text-four-options-and-correct-answer-selector-include-edit-and-delete-actions-per-row-on-save-call-addtest-or-updatetest-on-delete-call-deletetest-refresh-the-list-after-each-mutation",
+      "featureTitle": "Implement the Tests management panel in the Admin Dashboard. Display a table of all existing tests showing id, title, and category. Include an 'Add Test' button that opens a modal form with fields: Title, Category (dropdown: UPSC, BPSC, SSC, Railway, State Exams), and a dynamic questions editor (add/remove questions, each with question text, four options, and correct answer selector). Include Edit and Delete actions per row. On save, call addTest() or updateTest(); on delete, call deleteTest(). Refresh the list after each mutation.",
+      "files": [
+        "frontend/src/components/TestFormModal.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminTests.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-21"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-the-rankers-management-panel-in-the-admin-dashboard-display-a-ranked-table-of-all-rankers-showing-rank-studentname-examcategory-and-score-include-an-add-ranker-button-that-opens-a-modal-form-with-fields-student-name-exam-category-dropdown-and-score-include-a-delete-action-per-row-on-save-call-addranker-on-delete-call-deleteranker-refresh-the-leaderboard-after-each-mutation",
+      "featureTitle": "Implement the Rankers management panel in the Admin Dashboard. Display a ranked table of all rankers showing rank, studentName, examCategory, and score. Include an 'Add Ranker' button that opens a modal form with fields: Student Name, Exam Category (dropdown), and Score. Include a Delete action per row. On save, call addRanker(); on delete, call deleteRanker(). Refresh the leaderboard after each mutation.",
+      "files": [
+        "frontend/src/components/RankerFormModal.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminRankers.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-22"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-the-contact-submissions-panel-in-the-admin-dashboard-display-a-table-of-all-contact-form-submissions-showing-name-email-message-and-timestamp-call-getcontactsubmissions-using-the-active-session-token-to-fetch-data-show-a-loading-state-while-fetching-the-table-should-be-read-only-no-edit-or-delete-actions-required",
+      "featureTitle": "Implement the Contact Submissions panel in the Admin Dashboard. Display a table of all contact form submissions showing name, email, message, and timestamp. Call getContactSubmissions() using the active session token to fetch data. Show a loading state while fetching. The table should be read-only (no edit or delete actions required).",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminContacts.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-23"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

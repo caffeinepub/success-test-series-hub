@@ -1,0 +1,150 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-26T07:57:52.690Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 10,
+    "implemented": 5,
+    "items": [
+      {
+        "id": "REQ-15",
+        "summary": "Add backend support for admin authentication. Store a hardcoded admin username and password hash in the actor. Expose a login(username, password) update function that returns a session token (a random text token) on success, or an error on failure. Expose a validateSession(token) query that returns true if the token is active. Expose a logout(token) update function that invalidates the session token.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-16",
+        "summary": "Add backend admin CRUD functions for tests. Expose addTest(token, title, category, questions) update that creates a new test (validates admin session first), updateTest(token, id, title, category, questions) update that modifies an existing test, and deleteTest(token, id) update that removes a test. All functions must reject with an error if the session token is invalid.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-17",
+        "summary": "Add backend admin functions for managing the top rankers leaderboard. Expose addRanker(token, studentName, examCategory, score) update and deleteRanker(token, rank) update. Re-sort and re-rank entries after each mutation. All functions must validate the admin session token and reject with an error if invalid.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-18",
+        "summary": "Add a backend query function getContactSubmissions(token) that returns all stored contact form submissions. Must validate the admin session token and return an error if invalid.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-19",
+        "summary": "Create a standalone Admin Login page at route /admin. Render a centered login card with Username and Password fields and a 'Login' button. On submit, call the backend login() function. On success, store the session token in React state (or localStorage) and redirect to the Admin Dashboard. On failure, display an inline error message 'Invalid credentials'. Style the page to match the existing dark navy and gold theme.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminLogin.tsx",
+          "frontend/src/hooks/useAuth.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminLogin.tsx",
+          "frontend/src/hooks/useAuth.ts"
+        ]
+      },
+      {
+        "id": "REQ-20",
+        "summary": "Create an Admin Dashboard page at route /admin/dashboard, accessible only when a valid session token exists (redirect to /admin if not authenticated). Render a sidebar with navigation links: Tests, Rankers, Contact Submissions, and a Logout button. Logout calls the backend logout() function, clears the session token, and redirects to /admin.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminDashboard.tsx",
+          "frontend/src/components/AdminSidebar.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminDashboard.tsx",
+          "frontend/src/components/AdminSidebar.tsx"
+        ]
+      },
+      {
+        "id": "REQ-21",
+        "summary": "Implement the Tests management panel in the Admin Dashboard. Display a table of all existing tests showing id, title, and category. Include an 'Add Test' button that opens a modal form with fields: Title, Category (dropdown: UPSC, BPSC, SSC, Railway, State Exams), and a dynamic questions editor (add/remove questions, each with question text, four options, and correct answer selector). Include Edit and Delete actions per row. On save, call addTest() or updateTest(); on delete, call deleteTest(). Refresh the list after each mutation.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminTests.tsx",
+          "frontend/src/components/TestFormModal.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminTests.tsx",
+          "frontend/src/components/TestFormModal.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-22",
+        "summary": "Implement the Rankers management panel in the Admin Dashboard. Display a ranked table of all rankers showing rank, studentName, examCategory, and score. Include an 'Add Ranker' button that opens a modal form with fields: Student Name, Exam Category (dropdown), and Score. Include a Delete action per row. On save, call addRanker(); on delete, call deleteRanker(). Refresh the leaderboard after each mutation.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminRankers.tsx",
+          "frontend/src/components/RankerFormModal.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminRankers.tsx",
+          "frontend/src/components/RankerFormModal.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-23",
+        "summary": "Implement the Contact Submissions panel in the Admin Dashboard. Display a table of all contact form submissions showing name, email, message, and timestamp. Call getContactSubmissions() using the active session token to fetch data. Show a loading state while fetching. The table should be read-only (no edit or delete actions required).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminContacts.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminContacts.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-24",
+        "summary": "Add client-side routing to the frontend application to support the /admin and /admin/dashboard routes. Use React Router. The existing single-page app layout (App.tsx) should continue to render at the root route /. The /admin route should render the Admin Login page and /admin/dashboard should render the Admin Dashboard. Do not alter the existing public-facing page sections.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/main.tsx",
+          "frontend/package.json"
+        ],
+        "matchedFiles": []
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "build-request.json",
+    "build-template/README.md",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/AdminSidebar.tsx",
+    "frontend/src/components/RankerFormModal.tsx",
+    "frontend/src/components/TestFormModal.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useAuth.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminContacts.tsx",
+    "frontend/src/pages/AdminDashboard.tsx",
+    "frontend/src/pages/AdminLogin.tsx",
+    "frontend/src/pages/AdminRankers.tsx",
+    "frontend/src/pages/AdminTests.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}
