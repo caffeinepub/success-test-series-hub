@@ -1,6 +1,279 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Update admin credentials in backend",
-  "requirements": []
+  "title": "Add Image Slider, Daily Sections, OTP Login, Student Profile, Bilingual Tests, Bank Details & Admin Enhancements",
+  "requirements": [
+    {
+      "id": "REQ-43",
+      "summary": "Add homepage image slider (poster carousel) below the header with Prev/Next controls, auto-advance, and placeholder for empty state",
+      "acceptanceCriteria": [
+        "A sliding poster carousel is visible on the homepage above or within the hero section.",
+        "Prev/Next buttons advance or retreat through slides.",
+        "If no slides exist, a placeholder graphic or message is shown instead of an empty carousel."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ImageSlider.tsx",
+          "operation": "create",
+          "description": "Create a new ImageSlider component that fetches slider records via useGetSliders hook (calling backend getSliders()), displays them as full-width slides with Prev/Next navigation buttons and auto-advance timer. Show a placeholder banner when the slides array is empty. Use Tailwind for styling to match the existing navy/gold theme."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add useGetSliders query hook that calls actor.getSliders() and returns Array<Slider>. Cache with queryKey ['sliders']."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Import and render the ImageSlider component below the Header and above the Hero component on the home page route. Ensure it appears in the correct vertical order."
+        }
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "summary": "Add 'Manage Sliders' panel to Admin Dashboard for adding and deleting poster slides",
+      "acceptanceCriteria": [
+        "Admin sidebar includes a 'Manage Sliders' navigation link.",
+        "The panel lists all current slides with thumbnail previews and delete buttons.",
+        "An 'Add Slider' form accepts an image URL and optional title.",
+        "Saving calls addSlider() and the list refreshes automatically.",
+        "Deleting calls deleteSlider() and the list refreshes automatically."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AdminSidebar.tsx",
+          "operation": "modify",
+          "description": "Add a 'Manage Sliders' navigation link to the sidebar menu. Use the same active state highlighting pattern as existing links (Tests, Rankers, Contact Submissions). Wire to '/admin/sliders' route."
+        },
+        {
+          "path": "frontend/src/pages/AdminSliders.tsx",
+          "operation": "create",
+          "description": "Create AdminSliders page component that fetches sliders via useGetSliders, displays them in a table/grid with thumbnail images (using imageUrl), title, and delete button per row. Include an 'Add Slider' button that opens a modal form. Use useAddSlider and useDeleteSlider mutation hooks with automatic refetch on success."
+        },
+        {
+          "path": "frontend/src/components/SliderFormModal.tsx",
+          "operation": "create",
+          "description": "Create SliderFormModal component with a form containing imageUrl (Text input, required) and title (Text input, optional) fields. On submit, call useAddSlider mutation passing the session token from useSessionToken. Show loading state during submission and close modal on success."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add useAddSlider mutation hook that calls actor.addSlider(token, imageUrl, title) and invalidates ['sliders'] cache. Add useDeleteSlider mutation hook that calls actor.deleteSlider(token, id) and invalidates ['sliders'] cache."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboard.tsx",
+          "operation": "modify",
+          "description": "Add routing logic for '/admin/sliders' path that renders the AdminSliders component. Follow the existing pattern used for AdminTests, AdminRankers, and AdminContacts."
+        }
+      ]
+    },
+    {
+      "id": "REQ-45",
+      "summary": "Add 'Daily Current Affairs' and 'Daily Newspaper' sections on the homepage displaying date-sorted entries",
+      "acceptanceCriteria": [
+        "Homepage displays a 'Daily Current Affairs' box showing entries with date and headline.",
+        "Homepage displays a 'Daily Newspaper' section showing entries with date and a clickable link.",
+        "Sections show a graceful empty state when no entries exist."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/DailyCurrentAffairs.tsx",
+          "operation": "create",
+          "description": "Create DailyCurrentAffairs component that fetches entries via useGetCurrentAffairs hook (calling backend getCurrentAffairs()), displays them in a styled box with date and content text. Sort by date descending. Show an empty state message if no entries exist. Use Tailwind styling to match the navy/gold theme."
+        },
+        {
+          "path": "frontend/src/components/DailyNewspaper.tsx",
+          "operation": "create",
+          "description": "Create DailyNewspaper component that fetches entries via useGetNewspapers hook (calling backend getNewspapers()), displays them with date and a clickable link (opening in a new tab). Sort by date descending. Show an empty state message if no entries exist. Style consistently with DailyCurrentAffairs."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add useGetCurrentAffairs query hook that calls actor.getCurrentAffairs() and returns Array<CurrentAffairs>. Add useGetNewspapers query hook that calls actor.getNewspapers() and returns Array<Newspaper>. Cache with queryKeys ['currentAffairs'] and ['newspapers'] respectively."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Import and render DailyCurrentAffairs and DailyNewspaper components on the home page route. Position them below the Hero section and above or alongside the FreeTests section, ensuring a logical content flow."
+        }
+      ]
+    },
+    {
+      "id": "REQ-46",
+      "summary": "Add 'Manage Current Affairs' and 'Manage Daily Newspaper' panels to Admin Dashboard for adding and deleting entries",
+      "acceptanceCriteria": [
+        "Admin sidebar includes 'Manage Current Affairs' and 'Manage Daily Newspaper' navigation links.",
+        "Each panel lists existing entries with delete buttons.",
+        "Add forms accept the appropriate fields and call the corresponding backend function.",
+        "Lists refresh automatically after each add or delete."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AdminSidebar.tsx",
+          "operation": "modify",
+          "description": "Add 'Manage Current Affairs' and 'Manage Daily Newspaper' navigation links to the sidebar menu. Wire to '/admin/current-affairs' and '/admin/newspapers' routes respectively. Use the same active state highlighting pattern."
+        },
+        {
+          "path": "frontend/src/pages/AdminCurrentAffairs.tsx",
+          "operation": "create",
+          "description": "Create AdminCurrentAffairs page that fetches entries via useGetCurrentAffairs, displays them in a table with date, content preview, and delete button. Include an 'Add Entry' button that opens a form modal. Use useAddCurrentAffairs and useDeleteCurrentAffairs mutation hooks with automatic refetch."
+        },
+        {
+          "path": "frontend/src/pages/AdminNewspapers.tsx",
+          "operation": "create",
+          "description": "Create AdminNewspapers page that fetches entries via useGetNewspapers, displays them in a table with date, link, and delete button. Include an 'Add Entry' button that opens a form modal. Use useAddNewspaper and useDeleteNewspaper mutation hooks with automatic refetch."
+        },
+        {
+          "path": "frontend/src/components/CurrentAffairsFormModal.tsx",
+          "operation": "create",
+          "description": "Create CurrentAffairsFormModal component with form fields for date (date input) and content (textarea). On submit, call useAddCurrentAffairs mutation passing token, date, content. Show loading state and close on success."
+        },
+        {
+          "path": "frontend/src/components/NewspaperFormModal.tsx",
+          "operation": "create",
+          "description": "Create NewspaperFormModal component with form fields for date (date input) and link (URL input). On submit, call useAddNewspaper mutation passing token, date, link. Show loading state and close on success."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add useAddCurrentAffairs mutation (calls actor.addCurrentAffairs(token, date, content), invalidates ['currentAffairs']), useDeleteCurrentAffairs mutation (calls actor.deleteCurrentAffairs(token, id), invalidates ['currentAffairs']), useAddNewspaper mutation (calls actor.addNewspaper(token, date, link), invalidates ['newspapers']), and useDeleteNewspaper mutation (calls actor.deleteNewspaper(token, id), invalidates ['newspapers'])."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboard.tsx",
+          "operation": "modify",
+          "description": "Add routing logic for '/admin/current-affairs' and '/admin/newspapers' paths that render AdminCurrentAffairs and AdminNewspapers components respectively. Follow the existing routing pattern."
+        }
+      ]
+    },
+    {
+      "id": "REQ-47",
+      "summary": "Replace username/password student login with Mobile Number + OTP login system using simulated OTP delivery",
+      "acceptanceCriteria": [
+        "Student login page shows a mobile number input and 'Send OTP' button.",
+        "After sending OTP, an OTP input and 'Verify OTP' button appear.",
+        "On successful verification, token is stored in localStorage and student is redirected to /student/dashboard.",
+        "On OTP mismatch, an inline error message is shown.",
+        "Student accounts are identified by mobile number (auto-created on first login)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/StudentLogin.tsx",
+          "operation": "modify",
+          "description": "Replace the existing username/password login and registration tabs with a single OTP-based login flow. Show a mobile number input and 'Send OTP' button. On clicking 'Send OTP', call useRequestOtp mutation. After successful OTP request, display an OTP input field (6 digits) and 'Verify OTP' button. On clicking 'Verify OTP', call useVerifyOtp mutation which returns [token, studentName]. Store token and studentName via setStudentAuthToken and navigate to /student/dashboard. Show inline error messages for invalid OTP or network errors."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add useRequestOtp mutation hook that calls actor.requestOtp(mobileNumber). Add useVerifyOtp mutation hook that calls actor.verifyOtp(mobileNumber, otp) and returns [string, string] (token and student name). Handle errors appropriately."
+        },
+        {
+          "path": "frontend/src/hooks/useStudentAuth.ts",
+          "operation": "modify",
+          "description": "Update setStudentAuthToken function signature or logic to accept both token and studentName (or mobileNumber as the identifier). Ensure the hook stores both values in localStorage under separate keys (e.g., 'studentToken' and 'studentName') and syncs state across storage events."
+        }
+      ]
+    },
+    {
+      "id": "REQ-48",
+      "summary": "Add Student Profile section to /student/dashboard displaying mobile number, profile photo, and photo upload capability",
+      "acceptanceCriteria": [
+        "Student Dashboard includes a 'My Profile' section.",
+        "Profile displays the student's mobile number and a circular profile photo or placeholder avatar.",
+        "An 'Upload Photo' button opens a file picker and sends the selected image as base64 to updateStudentProfilePhoto().",
+        "After upload, the profile photo updates immediately."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/StudentDashboard.tsx",
+          "operation": "modify",
+          "description": "Add a 'My Profile' section at the top of the dashboard. Fetch the student profile via useGetStudentProfile hook. Display the mobile number and a circular profile photo (if profilePhotoBase64 exists, render as <img src={`data:image/png;base64,${photoBase64}`} />; otherwise show a placeholder avatar icon). Include an 'Upload Photo' button that opens a file input, reads the selected file as base64, and calls useUpdateStudentProfilePhoto mutation. After successful upload, refetch the profile to update the UI."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add useGetStudentProfile query hook that calls actor.getStudentProfile(token) and returns Student | null. Cache with queryKey ['studentProfile', token]. Add useUpdateStudentProfilePhoto mutation hook that calls actor.updateStudentProfilePhoto(token, photoBase64) and invalidates ['studentProfile', token] cache on success."
+        }
+      ]
+    },
+    {
+      "id": "REQ-49",
+      "summary": "Add 'Students' management panel to Admin Dashboard displaying all registered students with mobile number and profile photo thumbnails",
+      "acceptanceCriteria": [
+        "Admin sidebar includes a 'Students' navigation link.",
+        "The panel displays a table with columns: Mobile Number and Profile Photo.",
+        "Profile photos are rendered as small circular thumbnails; a placeholder icon is shown if no photo is set.",
+        "The table is read-only with no edit or delete actions."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AdminSidebar.tsx",
+          "operation": "modify",
+          "description": "Add a 'Students' navigation link to the sidebar menu. Wire to '/admin/students' route. Use the same active state highlighting pattern."
+        },
+        {
+          "path": "frontend/src/pages/AdminStudents.tsx",
+          "operation": "create",
+          "description": "Create AdminStudents page that fetches all students via useGetStudents hook. Display them in a read-only table with columns for Mobile Number and Profile Photo. Render profile photos as small circular thumbnails (e.g., 48x48px) using base64 data if available, otherwise show a placeholder user icon. No edit or delete actions."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add useGetStudents query hook that calls actor.getStudents(token) and returns Array<Student>. Cache with queryKey ['students', token]."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboard.tsx",
+          "operation": "modify",
+          "description": "Add routing logic for '/admin/students' path that renders the AdminStudents component. Follow the existing routing pattern."
+        }
+      ]
+    },
+    {
+      "id": "REQ-50",
+      "summary": "Add negative marking support to tests: extend test form, display negative mark value on test cards, and calculate scores with negative marks in TestTakingModal",
+      "acceptanceCriteria": [
+        "Admin TestFormModal has a 'Negative Mark per Wrong Answer' numeric input.",
+        "Each test card in the Free Tests section shows the negative marking value (e.g., 'Negative: -0.33 per wrong answer').",
+        "TestTakingModal computes score = (correct × 1) + (wrong × negativeMarkValue) and displays it after submission."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/TestFormModal.tsx",
+          "operation": "modify",
+          "description": "Add a 'Negative Mark per Wrong Answer' numeric input field to the test form. Default value should be 0.0. Pass the negativeMarkValue to useAddTest or useUpdateTest mutations along with other test fields. Ensure the form validates the input as a number (can be negative, e.g., -0.33, -0.25, or 0)."
+        },
+        {
+          "path": "frontend/src/components/FreeTests.tsx",
+          "operation": "modify",
+          "description": "Display the negativeMarkValue on each test card. If negativeMarkValue is non-zero, show text like 'Negative Marking: -0.33 per wrong answer' below the test title or category. If zero, omit or show 'No negative marking'."
+        },
+        {
+          "path": "frontend/src/components/TestTakingModal.tsx",
+          "operation": "modify",
+          "description": "Update the score calculation logic to apply negative marking. After user submits answers, compute: score = (correctCount × 1) + (wrongCount × test.negativeMarkValue). Display the final score prominently in the results summary. Ensure wrongCount excludes unanswered questions."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update useAddTest and useUpdateTest mutation hooks to accept negativeMarkValue parameter and pass it to actor.addTest() and actor.updateTest() respectively."
+        }
+      ]
+    },
+    {
+      "id": "REQ-51",
+      "summary": "Display bank payment details in the Paid Test Series section below the plan cards with clear styling and instructions",
+      "acceptanceCriteria": [
+        "Paid Test Series section includes a 'Payment Details' card below the plan cards.",
+        "The card displays Account Number: 444418210022399, IFSC: BKID0004444, Name: Sachin Kumar.",
+        "The card is visually distinct (e.g., gold border or highlighted background).",
+        "A note instructs students to transfer and contact admin for activation."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/PaidTestSeries.tsx",
+          "operation": "modify",
+          "description": "Add a 'Payment Details' card below the existing plan cards. Use a gold-bordered container (border-gold-400) with a white or light background. Display: 'Account Number: 444418210022399', 'IFSC Code: BKID0004444', 'Account Holder Name: Sachin Kumar'. Include a note: 'Transfer the amount and contact admin for activation.' Use Tailwind classes to make it visually distinct and aligned with the navy/gold theme."
+        }
+      ]
+    }
+  ]
 }

@@ -1,23 +1,82 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T09:53:25.482Z",
-  "summary": "The diff correctly updates the hardcoded admin credentials in backend/main.mo to 'STSHubsachin' and 'success@#2003', and the login() function validates against these new credentials. The validateSession() and admin-guarded functions remain intact. A migration module is also added to handle state schema changes. All core requirements of REQ-25 appear to be implemented.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-26T11:40:11.720Z",
+  "summary": "The diff implements most of the requested requirements (REQ-43 through REQ-51). The majority of features are present including the image slider, daily sections, OTP login, student profile, admin panels, negative marking, and bank details. However, there are a few gaps and one hallucinated feature worth noting.",
+  "missing_requirements": [
     {
-      "description": "A migration module (backend/migration.mo) was added to handle actor state migration from an old schema (with adminPasswordHash map) to a new schema (without it).",
-      "reason": "The build request only asked to update hardcoded credentials in backend/main.mo. No migration infrastructure was requested, and the constraints explicitly say 'Do not change any other backend logic, data models, or existing CRUD functions.'",
+      "id": "REQ-47",
+      "requirement": "Remove the old registerStudent and studentLogin password-based backend functions (or keep them deprecated).",
+      "reason": "The diff does not show evidence of the old registerStudent and studentLogin functions being removed or marked deprecated in backend/main.mo. The migration module maps old students by email to mobileNumber, but whether the old auth functions are removed is not confirmed in the truncated backend file.",
       "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo"
+        "backend/main.mo",
+        "backend/migration.mo"
+      ]
+    },
+    {
+      "id": "REQ-45",
+      "requirement": "Backend exposes getCurrentAffairs() returning all entries sorted by date descending; getNewspapers() returning all entries sorted by date descending.",
+      "reason": "The frontend components sort entries client-side, but the backend functions sort order cannot be verified from the truncated backend/main.mo. The requirement specifies backend sorting.",
+      "evidence": [
+        "backend/main.mo",
+        "frontend/src/components/DailyCurrentAffairs.tsx",
+        "frontend/src/components/DailyNewspaper.tsx"
       ]
     }
   ],
-  "confidence": 0.82,
+  "hallucinated_features": [
+    {
+      "description": "A migration module (backend/migration.mo) that maps old password-based students to new mobile-number-based students using the old email field as mobileNumber.",
+      "reason": "The build request does not mention a migration system or module. It says to add requestOtp/verifyOtp and optionally keep old functions deprecated, but no migration utility was requested.",
+      "evidence": [
+        "backend/migration.mo"
+      ]
+    },
+    {
+      "description": "AdminStudents table includes a Student ID column and a Registered date column in addition to Mobile Number and Profile Photo.",
+      "reason": "REQ-49 specifies only two columns: Mobile Number and Profile Photo. The table is read-only which is correct, but adds extra columns not requested.",
+      "evidence": [
+        "frontend/src/pages/AdminStudents.tsx"
+      ]
+    },
+    {
+      "description": "OTP display hint shown to user in StudentLogin saying to check backend logs for the simulated OTP.",
+      "reason": "The requirement says OTP is simulated with no real SMS but does not specify showing a hint message in the UI about checking backend logs. This behavior was not requested.",
+      "evidence": [
+        "frontend/src/pages/StudentLogin.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/components/AITestGenerator.tsx",
+    "frontend/src/components/AdminSidebar.tsx",
+    "frontend/src/components/CurrentAffairsFormModal.tsx",
+    "frontend/src/components/DailyCurrentAffairs.tsx",
+    "frontend/src/components/DailyNewspaper.tsx",
+    "frontend/src/components/FreeTests.tsx",
+    "frontend/src/components/ImageSlider.tsx",
+    "frontend/src/components/NewspaperFormModal.tsx",
+    "frontend/src/components/PaidTestSeries.tsx",
+    "frontend/src/components/SliderFormModal.tsx",
+    "frontend/src/components/TestFormModal.tsx",
+    "frontend/src/components/TestTakingModal.tsx",
+    "frontend/src/hooks/useActor.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useStudentAuth.ts",
+    "frontend/src/pages/AdminContacts.tsx",
+    "frontend/src/pages/AdminCurrentAffairs.tsx",
+    "frontend/src/pages/AdminDashboard.tsx",
+    "frontend/src/pages/AdminNewspapers.tsx",
+    "frontend/src/pages/AdminSliders.tsx",
+    "frontend/src/pages/AdminStudents.tsx",
+    "frontend/src/pages/StudentDashboard.tsx",
+    "frontend/src/pages/StudentLogin.tsx",
+    "frontend/src/utils/translations.ts",
+    "frontend/src/utils/urlParams.ts",
     "project_state.json"
   ]
 }

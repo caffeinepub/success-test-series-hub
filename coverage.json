@@ -1,34 +1,201 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T09:53:25.484Z",
+  "generatedAt": "2026-02-26T11:40:11.726Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 0,
+    "total": 9,
+    "implemented": 9,
     "items": [
       {
-        "id": "REQ-25",
-        "summary": "Update the hardcoded admin credentials in the backend actor (backend/main.mo). Set the admin username to 'STSHubsachin' and the admin password to 'success@#2003'. Ensure the login() function validates against these new credentials and returns a valid session token on success.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-43",
+        "summary": "Add a homepage image slider (poster carousel) below the header/hero on the public-facing site. Display uploaded poster images as full-width slides with Prev/Next navigation controls and auto-advance. If no posters are uploaded yet, show a placeholder banner. Backend must store slider images as records with an id, imageUrl (Text), and title (optional Text). Expose getSliders() query and addSlider(token, imageUrl, title) / deleteSlider(token, id) admin-authenticated update functions.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ImageSlider.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ImageSlider.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-44",
+        "summary": "Add a 'Manage Sliders' panel to the Admin Dashboard sidebar. The panel must display a list of current poster slides (thumbnail, title, delete button) and provide an 'Add Slider' form with a URL input and optional title field. On save, call addSlider(); on delete, call deleteSlider(). Refresh the list after each mutation.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AdminSidebar.tsx",
+          "frontend/src/pages/AdminSliders.tsx",
+          "frontend/src/components/SliderFormModal.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AdminSidebar.tsx",
+          "frontend/src/pages/AdminSliders.tsx",
+          "frontend/src/components/SliderFormModal.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-45",
+        "summary": "Add a 'Daily Current Affairs' section on the homepage that fetches and displays current affairs entries (date + headline text) from the backend. Also add a 'Daily Newspaper' section that displays a list of newspaper entries (date + URL/link) from the backend. Backend must store current affairs entries with id, date (Text), and content (Text), and newspaper entries with id, date (Text), and link (Text). Expose getCurrentAffairs() and getNewspapers() query functions. Expose admin-authenticated addCurrentAffairs(token, date, content), deleteCurrentAffairs(token, id), addNewspaper(token, date, link), and deleteNewspaper(token, id) update functions.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/DailyCurrentAffairs.tsx",
+          "frontend/src/components/DailyNewspaper.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/DailyCurrentAffairs.tsx",
+          "frontend/src/components/DailyNewspaper.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-46",
+        "summary": "Add a 'Manage Current Affairs' and a 'Manage Daily Newspaper' panel to the Admin Dashboard sidebar. Each panel must list existing entries with date/content and a delete button. Each panel must have an 'Add' form. For Current Affairs: date and content text fields. For Newspaper: date and URL/link fields. On save call the respective add function; on delete call the respective delete function. Refresh lists after each mutation.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AdminSidebar.tsx",
+          "frontend/src/pages/AdminCurrentAffairs.tsx",
+          "frontend/src/pages/AdminNewspapers.tsx",
+          "frontend/src/components/CurrentAffairsFormModal.tsx",
+          "frontend/src/components/NewspaperFormModal.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AdminSidebar.tsx",
+          "frontend/src/pages/AdminCurrentAffairs.tsx",
+          "frontend/src/pages/AdminNewspapers.tsx",
+          "frontend/src/components/CurrentAffairsFormModal.tsx",
+          "frontend/src/components/NewspaperFormModal.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-47",
+        "summary": "Replace the existing username/password-based student login with a Mobile Number + OTP login system. On the /student/login page: show a mobile number input and a 'Send OTP' button. After the user submits their mobile number, call the backend requestOtp(mobileNumber) function which generates and stores a 6-digit OTP tied to the mobile number (simulated — no real SMS). Then show an OTP input field and 'Verify OTP' button. Calling verifyOtp(mobileNumber, otp) on the backend validates the OTP, creates or retrieves the student account by mobile number, and returns a session token and student display name. On success, store the token in localStorage and redirect to /student/dashboard. On failure, show an inline error. Remove the old registerStudent and studentLogin password-based backend functions (or keep them deprecated) and add requestOtp() and verifyOtp() functions.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/StudentLogin.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/hooks/useStudentAuth.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/StudentLogin.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/hooks/useStudentAuth.ts"
+        ]
+      },
+      {
+        "id": "REQ-48",
+        "summary": "Add a Student Profile section accessible from the Student Dashboard at /student/dashboard. The profile section must display the student's mobile number and a circular profile photo (or a placeholder avatar if none uploaded). Include an 'Upload Photo' button that allows the student to select an image file; store the photo as a base64-encoded Text in the backend against their student record. Expose getStudentProfile(token) query and updateStudentProfilePhoto(token, photoBase64) update function on the backend.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/StudentDashboard.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/StudentDashboard.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-49",
+        "summary": "Add a 'Students' management panel to the Admin Dashboard. Display a table of all registered students showing their mobile number and profile photo (rendered as a small circular thumbnail if available, otherwise a placeholder). Expose a backend admin query getStudents(token) that returns all student records including mobile number and photoBase64. The table should be read-only (no edit or delete).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AdminSidebar.tsx",
+          "frontend/src/pages/AdminStudents.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AdminSidebar.tsx",
+          "frontend/src/pages/AdminStudents.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-50",
+        "summary": "Add negative marking support to tests. Extend the backend Test record to include a negativeMarkValue field (Float, default 0.0). Update addTest(), updateTest(), getTests(), and getTestById() to accept and return this field. In the Admin TestFormModal, add a 'Negative Mark per Wrong Answer' input (e.g., -0.33, -0.25, 0). Display the negative marking value on each test card in the Free Tests section. In the TestTakingModal, calculate and display the final score applying negative marks for wrong answers.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/TestFormModal.tsx",
+          "frontend/src/components/FreeTests.tsx",
+          "frontend/src/components/TestTakingModal.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/TestFormModal.tsx",
+          "frontend/src/components/FreeTests.tsx",
+          "frontend/src/components/TestTakingModal.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-51",
+        "summary": "Display bank payment details in the Paid Test Series section. Below the plan cards, add a clearly styled 'Payment Details' box showing: Account Number: 444418210022399, IFSC Code: BKID0004444, Account Holder Name: Sachin Kumar. Style the box to stand out (e.g., a gold-bordered card) and include a note instructing students to transfer the payment and contact the admin for activation.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/PaidTestSeries.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/PaidTestSeries.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
+    "backend/authorization/MixinAuthorization.mo",
+    "backend/authorization/access-control.mo",
     "backend/main.mo",
     "backend/migration.mo",
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
+    "frontend/src/components/AITestGenerator.tsx",
+    "frontend/src/components/AdminSidebar.tsx",
+    "frontend/src/components/CurrentAffairsFormModal.tsx",
+    "frontend/src/components/DailyCurrentAffairs.tsx",
+    "frontend/src/components/DailyNewspaper.tsx",
+    "frontend/src/components/FreeTests.tsx",
+    "frontend/src/components/ImageSlider.tsx",
+    "frontend/src/components/NewspaperFormModal.tsx",
+    "frontend/src/components/PaidTestSeries.tsx",
+    "frontend/src/components/SliderFormModal.tsx",
+    "frontend/src/components/TestFormModal.tsx",
+    "frontend/src/components/TestTakingModal.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useActor.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useStudentAuth.ts",
+    "frontend/src/pages/AdminContacts.tsx",
+    "frontend/src/pages/AdminCurrentAffairs.tsx",
+    "frontend/src/pages/AdminDashboard.tsx",
+    "frontend/src/pages/AdminNewspapers.tsx",
+    "frontend/src/pages/AdminSliders.tsx",
+    "frontend/src/pages/AdminStudents.tsx",
+    "frontend/src/pages/StudentDashboard.tsx",
+    "frontend/src/pages/StudentLogin.tsx",
+    "frontend/src/utils/translations.ts",
+    "frontend/src/utils/urlParams.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

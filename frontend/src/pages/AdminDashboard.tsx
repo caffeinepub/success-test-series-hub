@@ -1,58 +1,64 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { getSessionToken } from '../hooks/useAuth';
 import AdminSidebar from '../components/AdminSidebar';
 import AdminTests from './AdminTests';
 import AdminRankers from './AdminRankers';
 import AdminContacts from './AdminContacts';
-import { useAdminLogout } from '../hooks/useQueries';
-import { clearSessionToken } from '../hooks/useAuth';
+import AdminSliders from './AdminSliders';
+import AdminCurrentAffairs from './AdminCurrentAffairs';
+import AdminNewspapers from './AdminNewspapers';
+import AdminStudents from './AdminStudents';
 
 interface AdminDashboardProps {
+  onNavigate: (page: string) => void;
   currentPath: string;
-  onNavigate: (path: string) => void;
 }
 
-export default function AdminDashboard({ currentPath, onNavigate }: AdminDashboardProps) {
+export default function AdminDashboard({ onNavigate, currentPath }: AdminDashboardProps) {
   const token = getSessionToken();
-  const logoutMutation = useAdminLogout();
 
   useEffect(() => {
     if (!token) {
-      onNavigate('/admin');
+      onNavigate('admin-login');
     }
   }, [token, onNavigate]);
 
   if (!token) return null;
 
-  const handleLogout = async () => {
-    try {
-      await logoutMutation.mutateAsync({ token });
-    } catch {
-      // ignore logout errors
-    } finally {
-      clearSessionToken();
-      onNavigate('/admin');
+  const handleSidebarNavigate = (path: string) => {
+    if (path === '/') {
+      onNavigate('home');
+    } else {
+      onNavigate(path);
     }
   };
 
   const renderPanel = () => {
-    if (currentPath.includes('/admin/dashboard/rankers')) return <AdminRankers />;
-    if (currentPath.includes('/admin/dashboard/contacts')) return <AdminContacts />;
-    return <AdminTests />;
+    switch (currentPath) {
+      case '/admin/tests':
+        return <AdminTests />;
+      case '/admin/rankers':
+        return <AdminRankers />;
+      case '/admin/contacts':
+        return <AdminContacts />;
+      case '/admin/sliders':
+        return <AdminSliders />;
+      case '/admin/current-affairs':
+        return <AdminCurrentAffairs />;
+      case '/admin/newspapers':
+        return <AdminNewspapers />;
+      case '/admin/students':
+        return <AdminStudents />;
+      default:
+        return <AdminTests />;
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <AdminSidebar
-        currentPath={currentPath}
-        onNavigate={onNavigate}
-        onLogout={handleLogout}
-        isLoggingOut={logoutMutation.isPending}
-      />
+    <div className="flex min-h-screen bg-navy-950">
+      <AdminSidebar currentPath={currentPath} onNavigate={handleSidebarNavigate} />
       <main className="flex-1 overflow-auto">
-        <div className="p-6 md:p-8">
-          {renderPanel()}
-        </div>
+        {renderPanel()}
       </main>
     </div>
   );

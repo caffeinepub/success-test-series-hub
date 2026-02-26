@@ -7,11 +7,10 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface Test {
+export interface CurrentAffairs {
     id: bigint;
-    title: string;
-    category: string;
-    questions: Array<Question>;
+    content: string;
+    date: string;
 }
 export interface Ranker {
     studentName: string;
@@ -19,10 +18,11 @@ export interface Ranker {
     score: bigint;
     examCategory: string;
 }
-export interface Question {
-    question: string;
-    answer: string;
-    options: Array<string>;
+export type Time = bigint;
+export interface Newspaper {
+    id: bigint;
+    date: string;
+    link: string;
 }
 export interface ContactSubmission {
     name: string;
@@ -30,20 +30,78 @@ export interface ContactSubmission {
     message: string;
     timestamp: bigint;
 }
+export interface Test {
+    id: bigint;
+    title: string;
+    negativeMarkValue: number;
+    category: string;
+    questions: Array<Question>;
+    price: bigint;
+}
+export interface Slider {
+    id: bigint;
+    title?: string;
+    imageUrl: string;
+}
+export interface Question {
+    question: string;
+    explanationHi?: string;
+    explanation?: string;
+    answer: string;
+    optionsHi?: Array<string>;
+    questionHi?: string;
+    options: Array<string>;
+}
+export interface UserProfile {
+    name: string;
+    email?: string;
+}
+export interface Student {
+    id: bigint;
+    otp?: string;
+    mobileNumber: string;
+    profilePhotoBase64?: string;
+    registeredAt: Time;
+}
+export enum UserRole {
+    admin = "admin",
+    user = "user",
+    guest = "guest"
+}
 export interface backendInterface {
+    addCurrentAffairs(token: string, date: string, content: string): Promise<void>;
+    addNewspaper(token: string, date: string, link: string): Promise<void>;
     addRanker(token: string, studentName: string, examCategory: string, score: bigint): Promise<void>;
-    addTest(token: string, title: string, category: string, questions: Array<Question>): Promise<void>;
+    addSlider(token: string, imageUrl: string, title: string | null): Promise<void>;
+    addTest(token: string, title: string, category: string, questions: Array<Question>, price: bigint, negativeMarkValue: number): Promise<void>;
+    assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    deleteCurrentAffairs(token: string, id: bigint): Promise<void>;
+    deleteNewspaper(token: string, id: bigint): Promise<void>;
     deleteRanker(token: string, rank: bigint): Promise<void>;
+    deleteSlider(token: string, id: bigint): Promise<void>;
     deleteTest(token: string, id: bigint): Promise<void>;
-    generateQuestions(topic: string, difficulty: string): Promise<Array<Question>>;
-    getContactSubmissions(token: string): Promise<Array<ContactSubmission>>;
-    getContactSubmissionsUser(): Promise<Array<ContactSubmission>>;
+    generateQuestions(token: string, topic: string, difficulty: string): Promise<Array<Question>>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
+    getCallerUserRole(): Promise<UserRole>;
+    getContactSubmissionsUser(token: string): Promise<Array<ContactSubmission>>;
+    getCurrentAffairs(): Promise<Array<CurrentAffairs>>;
+    getNewspapers(): Promise<Array<Newspaper>>;
+    getSliders(): Promise<Array<Slider>>;
+    getStudentProfile(token: string): Promise<Student | null>;
+    getStudents(token: string): Promise<Array<Student>>;
     getTestById(id: bigint): Promise<Test>;
     getTests(): Promise<Array<Test>>;
     getTopRankers(): Promise<Array<Ranker>>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
+    isCallerAdmin(): Promise<boolean>;
     login(username: string, password: string): Promise<string>;
     logout(token: string): Promise<void>;
+    requestOtp(mobileNumber: string): Promise<void>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    studentLogout(token: string): Promise<void>;
     submitContact(name: string, email: string, message: string): Promise<void>;
-    updateTest(token: string, id: bigint, title: string, category: string, questions: Array<Question>): Promise<void>;
+    updateStudentProfilePhoto(token: string, photoBase64: string): Promise<void>;
+    updateTest(token: string, id: bigint, title: string, category: string, questions: Array<Question>, price: bigint, negativeMarkValue: number): Promise<void>;
     validateSession(token: string): Promise<boolean>;
+    verifyOtp(mobileNumber: string, otp: string): Promise<[string, string]>;
 }

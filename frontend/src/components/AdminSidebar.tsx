@@ -1,87 +1,100 @@
-import { LayoutDashboard, FileText, Trophy, Mail, LogOut, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { useAdminLogout } from '../hooks/useQueries';
+import { getSessionToken, clearSessionToken } from '../hooks/useAuth';
+import {
+  ClipboardList,
+  Trophy,
+  MessageSquare,
+  LogOut,
+  GraduationCap,
+  ArrowLeft,
+  Image,
+  Newspaper,
+  BookOpen,
+  Users,
+} from 'lucide-react';
 
 interface AdminSidebarProps {
   currentPath: string;
   onNavigate: (path: string) => void;
-  onLogout: () => void;
-  isLoggingOut: boolean;
 }
 
 const navItems = [
-  { label: 'Tests', path: '/admin/dashboard/tests', icon: FileText },
-  { label: 'Rankers', path: '/admin/dashboard/rankers', icon: Trophy },
-  { label: 'Contact Submissions', path: '/admin/dashboard/contacts', icon: Mail },
+  { path: '/admin/tests', label: 'Tests', icon: ClipboardList },
+  { path: '/admin/rankers', label: 'Rankers', icon: Trophy },
+  { path: '/admin/contacts', label: 'Contact Submissions', icon: MessageSquare },
+  { path: '/admin/sliders', label: 'Manage Sliders', icon: Image },
+  { path: '/admin/current-affairs', label: 'Current Affairs', icon: Newspaper },
+  { path: '/admin/newspapers', label: 'Daily Newspaper', icon: BookOpen },
+  { path: '/admin/students', label: 'Students', icon: Users },
 ];
 
-export default function AdminSidebar({ currentPath, onNavigate, onLogout, isLoggingOut }: AdminSidebarProps) {
+export default function AdminSidebar({ currentPath, onNavigate }: AdminSidebarProps) {
+  const logoutMutation = useAdminLogout();
+
+  const handleLogout = async () => {
+    const token = getSessionToken();
+    if (token) {
+      try {
+        await logoutMutation.mutateAsync(token);
+      } catch (_) {}
+    }
+    clearSessionToken();
+    onNavigate('/');
+  };
+
   return (
-    <aside className="w-64 min-h-screen bg-navy-deep border-r border-gold/20 flex flex-col shadow-navy shrink-0">
-      {/* Header */}
-      <div className="p-5 border-b border-gold/20">
+    <aside className="w-64 min-h-screen bg-navy-900 border-r border-navy-700 flex flex-col">
+      {/* Logo */}
+      <div className="px-6 py-5 border-b border-navy-700">
         <div className="flex items-center gap-3">
-          <img
-            src="/assets/generated/logo.dim_256x256.png"
-            alt="Logo"
-            className="h-9 w-9 rounded-full object-cover border border-gold/30"
-          />
+          <div className="w-9 h-9 rounded-lg bg-gold-500/20 border border-gold-500/40 flex items-center justify-center">
+            <GraduationCap className="w-5 h-5 text-gold-400" />
+          </div>
           <div>
-            <div className="font-heading font-bold text-gold text-sm leading-tight">STSHub</div>
-            <div className="text-xs text-muted-foreground">Admin Panel</div>
+            <p className="text-white font-bold font-rajdhani text-sm leading-tight">STS Hub</p>
+            <p className="text-navy-400 text-xs">Admin Panel</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
-        <div className="mb-3">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest px-3 mb-2">
-            Management
-          </p>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentPath.includes(item.path);
-            return (
-              <button
-                key={item.path}
-                onClick={() => onNavigate(item.path)}
-                className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group ${
-                  isActive
-                    ? 'bg-gold/15 text-gold border border-gold/30'
-                    : 'text-foreground/70 hover:text-foreground hover:bg-navy-light'
-                }`}
-              >
-                <span className="flex items-center gap-3">
-                  <Icon size={16} className={isActive ? 'text-gold' : 'text-muted-foreground group-hover:text-foreground'} />
-                  {item.label}
-                </span>
-                {isActive && <ChevronRight size={14} className="text-gold" />}
-              </button>
-            );
-          })}
-        </div>
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {navItems.map(({ path, label, icon: Icon }) => {
+          const isActive = currentPath === path;
+          return (
+            <button
+              key={path}
+              onClick={() => onNavigate(path)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                isActive
+                  ? 'bg-gold-500/20 text-gold-400 border border-gold-500/30'
+                  : 'text-navy-300 hover:bg-navy-800 hover:text-white'
+              }`}
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              {label}
+            </button>
+          );
+        })}
       </nav>
 
-      {/* Footer / Logout */}
-      <div className="p-4 border-t border-gold/20">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10 font-medium"
-          onClick={onLogout}
-          disabled={isLoggingOut}
-        >
-          {isLoggingOut ? (
-            <span className="h-4 w-4 border-2 border-destructive/30 border-t-destructive rounded-full animate-spin" />
-          ) : (
-            <LogOut size={16} />
-          )}
-          {isLoggingOut ? 'Logging out…' : 'Logout'}
-        </Button>
+      {/* Footer */}
+      <div className="px-3 py-4 border-t border-navy-700 space-y-1">
         <button
           onClick={() => onNavigate('/')}
-          className="w-full mt-2 text-xs text-muted-foreground hover:text-gold transition-colors text-center py-1"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-navy-400 hover:bg-navy-800 hover:text-white transition-all"
         >
-          ← Back to main site
+          <ArrowLeft className="w-4 h-4 shrink-0" />
+          Back to Site
+        </button>
+        <button
+          onClick={handleLogout}
+          disabled={logoutMutation.isPending}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-all disabled:opacity-50"
+        >
+          <LogOut className="w-4 h-4 shrink-0" />
+          {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
         </button>
       </div>
     </aside>

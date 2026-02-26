@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { useContactSubmissions } from '../hooks/useQueries';
+import { useGetContactSubmissions } from '../hooks/useQueries';
 import { getSessionToken } from '../hooks/useAuth';
 
 function formatTimestamp(ts: bigint): string {
@@ -19,8 +19,8 @@ function formatTimestamp(ts: bigint): string {
 }
 
 export default function AdminContacts() {
-  const token = getSessionToken();
-  const { data: submissions, isLoading, isError } = useContactSubmissions(token);
+  const token = getSessionToken() || '';
+  const { data: submissions, isLoading, isError } = useGetContactSubmissions(token);
 
   return (
     <div>

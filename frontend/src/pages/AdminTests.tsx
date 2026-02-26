@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, FileText } from 'lucide-react';
+import { Plus, Pencil, Trash2, FileText, IndianRupee } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -75,6 +75,7 @@ export default function AdminTests() {
               <TableHead className="text-muted-foreground font-semibold w-16">ID</TableHead>
               <TableHead className="text-muted-foreground font-semibold">Title</TableHead>
               <TableHead className="text-muted-foreground font-semibold">Category</TableHead>
+              <TableHead className="text-muted-foreground font-semibold text-center">Price</TableHead>
               <TableHead className="text-muted-foreground font-semibold text-center">Questions</TableHead>
               <TableHead className="text-muted-foreground font-semibold text-right">Actions</TableHead>
             </TableRow>
@@ -86,41 +87,54 @@ export default function AdminTests() {
                   <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-16 mx-auto" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
-                  <TableCell><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
                 </TableRow>
               ))
             ) : tests && tests.length > 0 ? (
               tests.map((test) => (
-                <TableRow key={test.id.toString()} className="border-border hover:bg-navy-light/50">
+                <TableRow key={test.id.toString()} className="border-border hover:bg-accent/20 transition-colors">
                   <TableCell className="text-muted-foreground font-mono text-sm">
                     #{test.id.toString()}
                   </TableCell>
                   <TableCell className="font-medium text-foreground">{test.title}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="border-gold/40 text-gold text-xs">
+                    <Badge variant="outline" className="border-sky text-sky text-xs">
                       {test.category}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-center text-muted-foreground text-sm">
+                  <TableCell className="text-center">
+                    {Number(test.price) === 0 ? (
+                      <Badge variant="outline" className="border-success text-success text-xs">
+                        Free
+                      </Badge>
+                    ) : (
+                      <span className="inline-flex items-center gap-0.5 font-semibold text-gold text-sm">
+                        <IndianRupee className="h-3.5 w-3.5" />
+                        {Number(test.price)}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center text-muted-foreground">
                     {test.questions.length}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button
-                        variant="ghost"
                         size="sm"
+                        variant="ghost"
                         onClick={() => handleEdit(test)}
-                        className="h-8 w-8 p-0 hover:text-gold hover:bg-gold/10"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-gold hover:bg-gold/10"
                       >
                         <Pencil size={14} />
                       </Button>
                       <Button
-                        variant="ghost"
                         size="sm"
+                        variant="ghost"
                         onClick={() => handleDelete(test.id)}
                         disabled={deleteTest.isPending}
-                        className="h-8 w-8 p-0 hover:text-destructive hover:bg-destructive/10"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 size={14} />
                       </Button>
@@ -130,9 +144,8 @@ export default function AdminTests() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                  <FileText size={32} className="mx-auto mb-3 opacity-30" />
-                  <p>No tests found. Add your first test!</p>
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
+                  No tests yet. Click "Add Test" to create your first test.
                 </TableCell>
               </TableRow>
             )}

@@ -16,9 +16,19 @@ export interface ContactSubmission {
   'message' : string,
   'timestamp' : bigint,
 }
+export interface CurrentAffairs {
+  'id' : bigint,
+  'content' : string,
+  'date' : string,
+}
+export interface Newspaper { 'id' : bigint, 'date' : string, 'link' : string }
 export interface Question {
   'question' : string,
+  'explanationHi' : [] | [string],
+  'explanation' : [] | [string],
   'answer' : string,
+  'optionsHi' : [] | [Array<string>],
+  'questionHi' : [] | [string],
   'options' : Array<string>,
 }
 export interface Ranker {
@@ -27,31 +37,74 @@ export interface Ranker {
   'score' : bigint,
   'examCategory' : string,
 }
+export interface Slider {
+  'id' : bigint,
+  'title' : [] | [string],
+  'imageUrl' : string,
+}
+export interface Student {
+  'id' : bigint,
+  'otp' : [] | [string],
+  'mobileNumber' : string,
+  'profilePhotoBase64' : [] | [string],
+  'registeredAt' : Time,
+}
 export interface Test {
   'id' : bigint,
   'title' : string,
+  'negativeMarkValue' : number,
   'category' : string,
   'questions' : Array<Question>,
+  'price' : bigint,
 }
+export type Time = bigint;
+export interface UserProfile { 'name' : string, 'email' : [] | [string] }
+export type UserRole = { 'admin' : null } |
+  { 'user' : null } |
+  { 'guest' : null };
 export interface _SERVICE {
+  '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addCurrentAffairs' : ActorMethod<[string, string, string], undefined>,
+  'addNewspaper' : ActorMethod<[string, string, string], undefined>,
   'addRanker' : ActorMethod<[string, string, string, bigint], undefined>,
-  'addTest' : ActorMethod<[string, string, string, Array<Question>], undefined>,
+  'addSlider' : ActorMethod<[string, string, [] | [string]], undefined>,
+  'addTest' : ActorMethod<
+    [string, string, string, Array<Question>, bigint, number],
+    undefined
+  >,
+  'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'deleteCurrentAffairs' : ActorMethod<[string, bigint], undefined>,
+  'deleteNewspaper' : ActorMethod<[string, bigint], undefined>,
   'deleteRanker' : ActorMethod<[string, bigint], undefined>,
+  'deleteSlider' : ActorMethod<[string, bigint], undefined>,
   'deleteTest' : ActorMethod<[string, bigint], undefined>,
-  'generateQuestions' : ActorMethod<[string, string], Array<Question>>,
-  'getContactSubmissions' : ActorMethod<[string], Array<ContactSubmission>>,
-  'getContactSubmissionsUser' : ActorMethod<[], Array<ContactSubmission>>,
+  'generateQuestions' : ActorMethod<[string, string, string], Array<Question>>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
+  'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getContactSubmissionsUser' : ActorMethod<[string], Array<ContactSubmission>>,
+  'getCurrentAffairs' : ActorMethod<[], Array<CurrentAffairs>>,
+  'getNewspapers' : ActorMethod<[], Array<Newspaper>>,
+  'getSliders' : ActorMethod<[], Array<Slider>>,
+  'getStudentProfile' : ActorMethod<[string], [] | [Student]>,
+  'getStudents' : ActorMethod<[string], Array<Student>>,
   'getTestById' : ActorMethod<[bigint], Test>,
   'getTests' : ActorMethod<[], Array<Test>>,
   'getTopRankers' : ActorMethod<[], Array<Ranker>>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'isCallerAdmin' : ActorMethod<[], boolean>,
   'login' : ActorMethod<[string, string], string>,
   'logout' : ActorMethod<[string], undefined>,
+  'requestOtp' : ActorMethod<[string], undefined>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'studentLogout' : ActorMethod<[string], undefined>,
   'submitContact' : ActorMethod<[string, string, string], undefined>,
+  'updateStudentProfilePhoto' : ActorMethod<[string, string], undefined>,
   'updateTest' : ActorMethod<
-    [string, bigint, string, string, Array<Question>],
+    [string, bigint, string, string, Array<Question>, bigint, number],
     undefined
   >,
   'validateSession' : ActorMethod<[string], boolean>,
+  'verifyOtp' : ActorMethod<[string, string], [string, string]>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

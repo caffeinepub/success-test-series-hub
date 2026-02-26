@@ -1,70 +1,95 @@
-import { BookOpen, Zap, Trophy } from 'lucide-react';
+import { BookOpen, Users, FileText, Award, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface HeroProps {
-  onStartFreeTest: () => void;
+  onNavigate?: (path: string) => void;
 }
 
-export default function Hero({ onStartFreeTest }: HeroProps) {
+export default function Hero({ onNavigate }: HeroProps) {
+  const { t } = useTranslation();
+
+  const handleStartFreeTest = () => {
+    const el = document.querySelector('#free-tests');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <section
-      id="home"
-      className="relative overflow-hidden bg-navy-deep py-20 md:py-32"
-    >
-      {/* Background decoration */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-sky/5 blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-gold/5 blur-3xl" />
+    <section id="home" className="relative overflow-hidden py-20 md:py-32" style={{
+      background: 'linear-gradient(135deg, oklch(0.09 0.05 265) 0%, oklch(0.13 0.09 255) 50%, oklch(0.11 0.07 270) 100%)'
+    }}>
+      {/* Background decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full blur-3xl" style={{ background: 'oklch(0.80 0.17 82 / 0.08)' }} />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full blur-3xl" style={{ background: 'oklch(0.65 0.22 238 / 0.08)' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl" style={{ background: 'oklch(0.60 0.20 145 / 0.04)' }} />
+        {/* Decorative grid lines */}
+        <div className="absolute inset-0 opacity-5" style={{
+          backgroundImage: 'linear-gradient(oklch(0.80 0.17 82) 1px, transparent 1px), linear-gradient(90deg, oklch(0.80 0.17 82) 1px, transparent 1px)',
+          backgroundSize: '60px 60px'
+        }} />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-3xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-gold/10 border border-gold/30 rounded-full px-4 py-1.5 mb-6">
-            <Zap size={14} className="text-gold" />
-            <span className="text-gold text-sm font-semibold tracking-wide">India's Premier Exam Prep Platform</span>
-          </div>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6" style={{
+          background: 'oklch(0.80 0.17 82 / 0.12)',
+          border: '1px solid oklch(0.80 0.17 82 / 0.35)'
+        }}>
+          <Award className="h-4 w-4 text-gold" />
+          <span className="text-gold text-sm font-heading font-semibold tracking-wide">India's #1 Exam Prep Platform</span>
+        </div>
 
-          {/* Headline */}
-          <h1 className="font-heading text-5xl md:text-7xl font-bold text-foreground mb-4 leading-tight">
-            Start{' '}
-            <span className="text-gold">Free Test</span>{' '}
-            Now!
-          </h1>
+        <h1 className="font-heading font-bold text-4xl md:text-6xl leading-tight mb-4" style={{ color: 'oklch(0.96 0.01 255)' }}>
+          {t('heroHeadline')}{' '}
+          <span className="text-gold relative">
+            {t('heroHeadlineAccent')}
+            <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full" style={{ background: 'linear-gradient(90deg, oklch(0.80 0.17 82), oklch(0.65 0.22 238))' }} />
+          </span>
+        </h1>
 
-          {/* Subheadline */}
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto leading-relaxed">
-            Practice for{' '}
-            <span className="text-sky font-semibold">UPSC, BPSC, SSC, Railway</span>, and{' '}
-            <span className="text-sky font-semibold">State Exams</span> with AI-powered test series.
-          </p>
+        <p className="text-lg md:text-xl max-w-3xl mx-auto mb-10 leading-relaxed" style={{ color: 'oklch(0.72 0.05 255)' }}>
+          {t('heroSubheadline')}
+        </p>
 
-          {/* CTA Button */}
-          <button
-            onClick={onStartFreeTest}
-            className="inline-flex items-center gap-2 bg-success text-success-foreground font-bold text-lg px-8 py-4 rounded-lg shadow-lg hover:opacity-90 active:scale-95 transition-all duration-200"
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <Button
+            size="lg"
+            onClick={handleStartFreeTest}
+            className="font-heading font-bold text-lg tracking-wide px-8 shadow-gold animate-pulse-gold"
+            style={{ background: 'oklch(0.60 0.20 145)', color: 'oklch(0.10 0.04 265)' }}
           >
-            <BookOpen size={20} />
-            Start Free Test
-          </button>
+            <BookOpen className="h-5 w-5 mr-2" />
+            {t('startFreeTest')}
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => document.querySelector('#paid-plans')?.scrollIntoView({ behavior: 'smooth' })}
+            className="font-heading font-bold text-lg tracking-wide px-8 border-sky text-sky hover:bg-sky hover:text-navy-deep"
+          >
+            <Zap className="h-5 w-5 mr-2" />
+            View Plans
+          </Button>
+        </div>
 
-          {/* Stats */}
-          <div className="mt-14 grid grid-cols-3 gap-6 max-w-lg mx-auto">
-            {[
-              { value: '10,000+', label: 'Students' },
-              { value: '500+', label: 'Tests' },
-              { value: '5', label: 'Exam Categories' },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="font-heading text-2xl md:text-3xl font-bold text-gold">{stat.value}</div>
-                <div className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">{stat.label}</div>
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+          {[
+            { icon: Users, value: '50,000+', label: t('statStudents'), color: 'text-sky' },
+            { icon: FileText, value: '10,000+', label: t('statTests'), color: 'text-gold' },
+            { icon: Award, value: '20+', label: t('statCategories'), color: 'text-success' },
+          ].map(({ icon: Icon, value, label, color }) => (
+            <div key={label} className="text-center group">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full mb-2 mx-auto" style={{ background: 'oklch(0.20 0.065 265)' }}>
+                <Icon className={`h-5 w-5 ${color}`} />
               </div>
-            ))}
-          </div>
+              <div className={`font-heading font-bold text-2xl md:text-3xl ${color}`}>{value}</div>
+              <div className="text-sm font-medium mt-0.5" style={{ color: 'oklch(0.60 0.05 255)' }}>{label}</div>
+            </div>
+          ))}
         </div>
       </div>
-
-      {/* Bottom wave */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
     </section>
   );
 }

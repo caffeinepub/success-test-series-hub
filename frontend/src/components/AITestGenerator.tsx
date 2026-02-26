@@ -1,129 +1,191 @@
 import { useState } from 'react';
-import { Sparkles, ChevronDown, CheckCircle2, Loader2 } from 'lucide-react';
-import { useGenerateQuestions } from '../hooks/useQueries';
-import type { Question } from '../backend';
+import { Sparkles, Loader2, CheckCircle, Brain } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { useGenerateQuestions } from '@/hooks/useQueries';
+import { useTranslation } from '@/hooks/useTranslation';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { getSessionToken } from '@/hooks/useAuth';
+import type { Question } from '@/backend';
 
 export default function AITestGenerator() {
   const [topic, setTopic] = useState('');
-  const [difficulty, setDifficulty] = useState('medium');
-  const { mutate: generate, isPending, data: questions, error } = useGenerateQuestions();
+  const [difficulty, setDifficulty] = useState('Medium');
+  const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
+  const [genError, setGenError] = useState('');
+  const { mutateAsync: generateQuestions, isPending } = useGenerateQuestions();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
 
-  const handleGenerate = () => {
+  const difficultyOptions = [
+    { value: 'Easy', label: t('difficultyEasy'), color: 'oklch(0.60 0.20 145)' },
+    { value: 'Medium', label: t('difficultyMedium'), color: 'oklch(0.80 0.17 82)' },
+    { value: 'Hard', label: t('difficultyHard'), color: 'oklch(0.68 0.22 30)' },
+  ];
+
+  const handleGenerate = async () => {
     if (!topic.trim()) return;
-    generate({ topic: topic.trim(), difficulty });
+    setGenError('');
+    const token = getSessionToken() || '';
+    try {
+      const questions = await generateQuestions({ token, topic, difficulty });
+      setGeneratedQuestions(questions);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('Invalid session') || msg.includes('Unauthorized')) {
+        setGenError('Admin login required to generate questions.');
+      } else {
+        setGenError('Failed to generate questions. Please try again.');
+      }
+    }
+  };
+
+  const getQuestionText = (q: Question) => {
+    if (language === 'hi' && q.questionHi && q.questionHi.trim()) return q.questionHi;
+    return q.question;
+  };
+
+  const getOptions = (q: Question) => {
+    if (language === 'hi' && q.optionsHi && q.optionsHi.length > 0 && q.optionsHi.some(o => o.trim())) {
+      return q.optionsHi;
+    }
+    return q.options;
   };
 
   return (
-    <section id="ai" className="py-16 bg-background">
-      <div className="container mx-auto px-4">
+    <section className="py-16" style={{ background: 'linear-gradient(180deg, oklch(0.11 0.055 265) 0%, oklch(0.13 0.07 260) 50%, oklch(0.11 0.055 265) 100%)' }}>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h2 className="font-heading text-4xl font-bold text-foreground mb-2">
-            AI-Powered <span className="text-gold">Test Generator</span>
-          </h2>
-          <p className="text-muted-foreground">Enter any topic and get instant practice questions</p>
+          <div className="inline-flex items-center gap-2 mb-3">
+            <Brain className="h-7 w-7 text-sky" />
+            <h2 className="font-heading font-bold text-3xl md:text-4xl" style={{ color: 'oklch(0.96 0.01 255)' }}>
+              {t('aiGeneratorTitle')}
+            </h2>
+          </div>
+          <div className="w-20 h-1 mx-auto rounded-full" style={{ background: 'linear-gradient(90deg, oklch(0.65 0.22 238), oklch(0.80 0.17 82))' }} />
         </div>
 
-        <div className="max-w-2xl mx-auto">
-          <div className="card-navy p-6 space-y-4">
+        <div className="rounded-2xl p-8" style={{
+          background: 'oklch(0.14 0.06 265)',
+          border: '1px solid oklch(0.65 0.22 238 / 0.3)',
+          boxShadow: '0 0 40px oklch(0.65 0.22 238 / 0.08)'
+        }}>
+          <div className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-2">
-                Topic or Passage
-              </label>
+              <Label className="font-heading font-semibold mb-2 block text-sky">
+                {t('topicLabel')}
+              </Label>
               <Textarea
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                placeholder="Enter a topic (e.g., Indian Constitution, Mughal Empire, Railway Budget 2025...)"
-                rows={4}
-                className="bg-navy-deep border-border text-foreground placeholder:text-muted-foreground resize-none focus:border-gold/60 focus:ring-gold/20"
+                placeholder={t('topicPlaceholder')}
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-sky resize-none"
+                rows={3}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-2">
-                Difficulty Level
-              </label>
-              <Select value={difficulty} onValueChange={setDifficulty}>
-                <SelectTrigger className="bg-navy-deep border-border text-foreground focus:border-gold/60 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border text-foreground">
-                  <SelectItem value="easy" className="hover:bg-navy-light focus:bg-navy-light">Easy</SelectItem>
-                  <SelectItem value="medium" className="hover:bg-navy-light focus:bg-navy-light">Medium</SelectItem>
-                  <SelectItem value="hard" className="hover:bg-navy-light focus:bg-navy-light">Hard</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="font-heading font-semibold mb-2 block text-sky">
+                {t('difficultyLabel')}
+              </Label>
+              <div className="flex gap-3">
+                {difficultyOptions.map(({ value, label, color }) => (
+                  <button
+                    key={value}
+                    onClick={() => setDifficulty(value)}
+                    className="px-4 py-2 rounded-lg font-heading font-semibold text-sm transition-all"
+                    style={difficulty === value ? {
+                      background: color,
+                      border: `1px solid ${color}`,
+                      color: 'oklch(0.10 0.04 265)',
+                      boxShadow: `0 0 12px ${color}55`,
+                    } : {
+                      background: 'oklch(0.18 0.065 265)',
+                      border: `1px solid oklch(0.28 0.07 265)`,
+                      color: 'oklch(0.72 0.04 255)',
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <button
+            {genError && (
+              <p className="text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-2">
+                {genError}
+              </p>
+            )}
+
+            <Button
               onClick={handleGenerate}
               disabled={isPending || !topic.trim()}
-              className="w-full inline-flex items-center justify-center gap-2 bg-success text-success-foreground font-bold py-3 rounded-md hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full font-heading font-bold tracking-wide text-lg py-6"
+              style={{ background: 'oklch(0.65 0.22 238)', color: 'oklch(0.10 0.04 265)' }}
             >
               {isPending ? (
                 <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Generating...
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  {t('generatingBtn')}
                 </>
               ) : (
                 <>
-                  <Sparkles size={18} />
-                  Generate Questions
+                  <Sparkles className="h-5 w-5 mr-2" />
+                  {t('generateBtn')}
                 </>
               )}
-            </button>
+            </Button>
           </div>
+        </div>
 
-          {error && (
-            <div className="mt-4 p-4 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
-              Failed to generate questions. Please try again.
-            </div>
-          )}
-
-          {questions && questions.length > 0 && (
-            <div className="mt-6 space-y-4 animate-fade-in">
-              <h3 className="font-heading text-xl font-bold text-foreground flex items-center gap-2">
-                <Sparkles size={18} className="text-gold" />
-                Generated Questions
-              </h3>
-              {questions.map((q: Question, i: number) => (
-                <div key={i} className="card-navy p-5 border-gold/20">
-                  <p className="font-medium text-foreground mb-4">
-                    <span className="text-gold font-bold">Q{i + 1}.</span> {q.question}
+        {/* Generated Questions */}
+        {generatedQuestions.length > 0 && (
+          <div className="mt-8 space-y-6">
+            <h3 className="font-heading font-bold text-xl text-gold">{t('generatedQuestionsTitle')}</h3>
+            {generatedQuestions.map((q, i) => {
+              const questionText = getQuestionText(q);
+              const options = getOptions(q);
+              return (
+                <div key={i} className="rounded-xl p-6" style={{
+                  background: 'oklch(0.14 0.06 265)',
+                  border: '1px solid oklch(0.26 0.07 265)'
+                }}>
+                  <p className="font-medium mb-4" style={{ color: 'oklch(0.96 0.01 255)' }}>
+                    <span className="text-gold font-heading font-bold mr-2">{t('questionLabel')} {i + 1}.</span>
+                    {questionText}
                   </p>
-                  <div className="space-y-2 mb-4">
-                    {q.options.map((opt) => (
-                      <div
-                        key={opt}
-                        className={`text-sm px-3 py-2 rounded-md border ${
-                          opt === q.answer
-                            ? 'bg-gold/15 text-gold border-gold/40 font-semibold'
-                            : 'text-muted-foreground border-border'
-                        }`}
-                      >
-                        {opt === q.answer && (
-                          <CheckCircle2 size={13} className="inline mr-1.5 text-gold" />
-                        )}
-                        {opt}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gold bg-gold/10 border border-gold/20 rounded-md px-3 py-1.5 w-fit">
-                    <CheckCircle2 size={12} />
-                    <span>Correct Answer: <strong>{q.answer}</strong></span>
+                  <div className="space-y-2">
+                    {options.map((option, oi) => {
+                      const isCorrect = q.options[oi] === q.answer;
+                      return (
+                        <div
+                          key={oi}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm"
+                          style={isCorrect ? {
+                            border: '1px solid oklch(0.60 0.20 145 / 0.6)',
+                            background: 'oklch(0.60 0.20 145 / 0.12)',
+                            color: 'oklch(0.60 0.20 145)',
+                          } : {
+                            border: '1px solid oklch(0.26 0.07 265)',
+                            color: 'oklch(0.72 0.04 255)',
+                          }}
+                        >
+                          {isCorrect && <CheckCircle className="h-4 w-4 shrink-0" />}
+                          <span className="font-semibold mr-1">{String.fromCharCode(65 + oi)}.</span>
+                          {option}
+                          {isCorrect && (
+                            <span className="ml-auto text-xs font-semibold">{t('correctAnswer')}</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

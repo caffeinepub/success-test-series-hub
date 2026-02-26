@@ -1,97 +1,87 @@
-import { useState } from 'react';
-import { BookOpen, Tag, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
 import { useGetTests } from '../hooks/useQueries';
-import type { Test } from '../backend';
 import TestTakingModal from './TestTakingModal';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import type { Test } from '../backend';
+import { BookOpen, Clock, AlertTriangle, Loader2 } from 'lucide-react';
+import { useTranslation } from '../hooks/useTranslation';
 
-interface FreeTestsProps {
-  categoryFilter: string;
-}
-
-const categoryColors: Record<string, string> = {
-  UPSC: 'bg-sky/20 text-sky border-sky/30',
-  BPSC: 'bg-gold/20 text-gold border-gold/30',
-  SSC: 'bg-success/20 text-success border-success/30',
-  Railway: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-  'State Exams': 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-};
-
-export default function FreeTests({ categoryFilter }: FreeTestsProps) {
-  const { data: tests, isLoading, error } = useGetTests();
+export default function FreeTests() {
+  const { data: tests = [], isLoading, error } = useGetTests();
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
+  const { t } = useTranslation();
 
-  const filteredTests = tests
-    ? categoryFilter === 'All'
-      ? tests
-      : tests.filter((t) => t.category === categoryFilter)
-    : [];
+  const freeTests = tests.filter((test) => Number(test.price) === 0);
 
   return (
-    <section id="free-tests" className="py-16 bg-background">
-      <div className="container mx-auto px-4">
+    <section id="free-tests" className="py-16 px-4">
+      <div className="max-w-5xl mx-auto">
         <div className="text-center mb-10">
-          <h2 className="font-heading text-4xl font-bold text-foreground mb-2">
-            Free <span className="text-gold">Test Series</span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white font-rajdhani mb-3">
+            {t('freeTestsTitle')}
           </h2>
-          <p className="text-muted-foreground">
-            {categoryFilter !== 'All' ? `Showing tests for ${categoryFilter}` : 'All available free tests'}
-          </p>
+          <p className="text-navy-300">{t('freeTestsSubtitle')}</p>
         </div>
 
-        {isLoading && (
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-3 py-16 text-navy-400">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span>{t('loading')}</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16 text-red-400">
+            <p>{t('errorLoading')}</p>
+          </div>
+        ) : freeTests.length === 0 ? (
+          <div className="text-center py-16">
+            <BookOpen className="w-16 h-16 text-navy-600 mx-auto mb-4" />
+            <p className="text-navy-400 text-lg">{t('noTestsAvailable')}</p>
+            <p className="text-navy-500 text-sm mt-2">{t('checkBackSoon')}</p>
+          </div>
+        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="card-navy p-5">
-                <Skeleton className="h-5 w-3/4 mb-3 bg-navy-light" />
-                <Skeleton className="h-4 w-1/3 mb-4 bg-navy-light" />
-                <Skeleton className="h-9 w-28 bg-navy-light" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {error && (
-          <div className="text-center py-10 text-destructive">
-            Failed to load tests. Please try again.
-          </div>
-        )}
-
-        {!isLoading && !error && filteredTests.length === 0 && (
-          <div className="text-center py-16 text-muted-foreground">
-            <BookOpen size={48} className="mx-auto mb-4 opacity-30" />
-            <p className="text-lg">No tests found for this category.</p>
-          </div>
-        )}
-
-        {!isLoading && !error && filteredTests.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredTests.map((test) => (
+            {freeTests.map((test) => (
               <div
                 key={test.id.toString()}
-                className="card-navy p-5 flex flex-col gap-4 hover:border-gold/40 transition-all duration-200 hover:shadow-gold"
+                className="bg-navy-800 border border-navy-600 rounded-2xl p-5 hover:border-gold-500/50 transition-all group"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-heading font-bold text-lg text-foreground leading-tight flex-1">
-                    {test.title}
-                  </h3>
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap ${
-                    categoryColors[test.category] || 'bg-muted text-muted-foreground border-border'
-                  }`}>
-                    {test.category}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-sky-400" />
+                  </div>
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+                    FREE
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Tag size={14} />
-                  <span>{test.questions.length} Questions</span>
+
+                <h3 className="text-white font-semibold font-rajdhani mb-1 group-hover:text-gold-400 transition-colors">
+                  {test.title}
+                </h3>
+                <p className="text-navy-400 text-sm mb-3">{test.category}</p>
+
+                <div className="flex items-center gap-3 text-xs text-navy-400 mb-3">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {test.questions.length} {t('questions')}
+                  </span>
                 </div>
+
+                {/* Negative Marking Badge */}
+                {test.negativeMarkValue !== 0 ? (
+                  <div className="flex items-center gap-1.5 mb-3 text-xs text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-lg px-2.5 py-1.5">
+                    <AlertTriangle className="w-3 h-3 shrink-0" />
+                    <span>Negative: {test.negativeMarkValue} per wrong answer</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 mb-3 text-xs text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg px-2.5 py-1.5">
+                    <span>✓ No negative marking</span>
+                  </div>
+                )}
+
                 <button
                   onClick={() => setSelectedTest(test)}
-                  className="mt-auto inline-flex items-center gap-2 bg-success text-success-foreground font-semibold text-sm px-5 py-2.5 rounded-md hover:opacity-90 active:scale-95 transition-all w-fit"
+                  className="w-full py-2.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 font-semibold text-sm transition-all border border-sky-500/30 hover:border-sky-500/50"
                 >
-                  <BookOpen size={15} />
-                  Attempt
+                  {t('attemptTest')}
                 </button>
               </div>
             ))}

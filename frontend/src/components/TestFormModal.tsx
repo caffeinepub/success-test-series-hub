@@ -1,33 +1,38 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, X } from 'lucide-react';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from '@/components/ui/dialog';
+import { Plus, Trash2, ChevronDown, ChevronUp, IndianRupee } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useAddTest, useUpdateTest } from '../hooks/useQueries';
-import { getSessionToken } from '../hooks/useAuth';
-import type { Test, Question } from '../backend';
+import { useAddTest, useUpdateTest } from '@/hooks/useQueries';
+import { getSessionToken } from '@/hooks/useAuth';
+import type { Test, Question } from '@/backend';
 import { toast } from 'sonner';
 
-const CATEGORIES = ['UPSC', 'BPSC', 'SSC', 'Railway', 'State Exams'];
-
-interface QuestionEntry {
+interface QuestionForm {
   question: string;
   options: [string, string, string, string];
   answer: string;
+  explanation: string;
+  questionHi: string;
+  optionsHi: [string, string, string, string];
+  explanationHi: string;
+  expanded: boolean;
 }
-
-const emptyQuestion = (): QuestionEntry => ({
-  question: '',
-  options: ['', '', '', ''],
-  answer: '',
-});
 
 interface TestFormModalProps {
   open: boolean;
@@ -35,107 +40,170 @@ interface TestFormModalProps {
   editingTest: Test | null;
 }
 
+const CATEGORIES = ['UPSC', 'BPSC', 'SSC', 'Railway', 'Banking', 'State Exams', 'Current Affairs'];
+
+function makeEmptyQuestion(): QuestionForm {
+  return {
+    question: '',
+    options: ['', '', '', ''],
+    answer: '',
+    explanation: '',
+    questionHi: '',
+    optionsHi: ['', '', '', ''],
+    explanationHi: '',
+    expanded: true,
+  };
+}
+
 export default function TestFormModal({ open, onClose, editingTest }: TestFormModalProps) {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
-  const [questions, setQuestions] = useState<QuestionEntry[]>([emptyQuestion()]);
+  const [price, setPrice] = useState<number>(0);
+  const [negativeMarkValue, setNegativeMarkValue] = useState<number>(0);
+  const [questions, setQuestions] = useState<QuestionForm[]>([makeEmptyQuestion()]);
+  const { mutateAsync: addTest, isPending: isAdding } = useAddTest();
+  const { mutateAsync: updateTest, isPending: isUpdating } = useUpdateTest();
 
-  const addTest = useAddTest();
-  const updateTest = useUpdateTest();
-
-  const isEditing = !!editingTest;
+  const isPending = isAdding || isUpdating;
 
   useEffect(() => {
     if (open) {
       if (editingTest) {
         setTitle(editingTest.title);
         setCategory(editingTest.category);
+        setPrice(Number(editingTest.price));
+        setNegativeMarkValue(editingTest.negativeMarkValue ?? 0);
         setQuestions(
-          editingTest.questions.length > 0
-            ? editingTest.questions.map((q) => ({
-                question: q.question,
-                options: [
-                  q.options[0] ?? '',
-                  q.options[1] ?? '',
-                  q.options[2] ?? '',
-                  q.options[3] ?? '',
-                ] as [string, string, string, string],
-                answer: q.answer,
-              }))
-            : [emptyQuestion()]
+          editingTest.questions.map((q) => ({
+            question: q.question,
+            options: [
+              q.options[0] ?? '',
+              q.options[1] ?? '',
+              q.options[2] ?? '',
+              q.options[3] ?? '',
+            ] as [string, string, string, string],
+            answer: q.answer,
+            explanation: q.explanation ?? '',
+            questionHi: q.questionHi ?? '',
+            optionsHi: [
+              q.optionsHi?.[0] ?? '',
+              q.optionsHi?.[1] ?? '',
+              q.optionsHi?.[2] ?? '',
+              q.optionsHi?.[3] ?? '',
+            ] as [string, string, string, string],
+            explanationHi: q.explanationHi ?? '',
+            expanded: false,
+          }))
         );
       } else {
         setTitle('');
         setCategory('');
-        setQuestions([emptyQuestion()]);
+        setPrice(0);
+        setNegativeMarkValue(0);
+        setQuestions([makeEmptyQuestion()]);
       }
     }
   }, [open, editingTest]);
 
-  const handleAddQuestion = () => {
-    setQuestions((prev) => [...prev, emptyQuestion()]);
-  };
-
-  const handleRemoveQuestion = (idx: number) => {
-    setQuestions((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  const handleQuestionChange = (idx: number, field: keyof QuestionEntry, value: string) => {
+  const updateQuestion = (index: number, field: keyof QuestionForm, value: unknown) => {
     setQuestions((prev) =>
-      prev.map((q, i) => (i === idx ? { ...q, [field]: value } : q))
+      prev.map((q, i) => (i === index ? { ...q, [field]: value } : q))
     );
   };
 
-  const handleOptionChange = (qIdx: number, optIdx: number, value: string) => {
+  const updateOption = (qIndex: number, oIndex: number, value: string) => {
     setQuestions((prev) =>
       prev.map((q, i) => {
-        if (i !== qIdx) return q;
+        if (i !== qIndex) return q;
         const newOptions = [...q.options] as [string, string, string, string];
-        newOptions[optIdx] = value;
+        newOptions[oIndex] = value;
         return { ...q, options: newOptions };
       })
     );
   };
 
-  const handleSetAnswer = (qIdx: number, option: string) => {
+  const updateOptionHi = (qIndex: number, oIndex: number, value: string) => {
     setQuestions((prev) =>
-      prev.map((q, i) => (i === qIdx ? { ...q, answer: option } : q))
+      prev.map((q, i) => {
+        if (i !== qIndex) return q;
+        const newOptions = [...q.optionsHi] as [string, string, string, string];
+        newOptions[oIndex] = value;
+        return { ...q, optionsHi: newOptions };
+      })
     );
   };
 
-  const validate = () => {
-    if (!title.trim()) return 'Title is required.';
-    if (!category) return 'Category is required.';
-    for (let i = 0; i < questions.length; i++) {
-      const q = questions[i];
-      if (!q.question.trim()) return `Question ${i + 1}: question text is required.`;
-      for (let j = 0; j < 4; j++) {
-        if (!q.options[j].trim()) return `Question ${i + 1}: all 4 options are required.`;
-      }
-      if (!q.answer) return `Question ${i + 1}: please select the correct answer.`;
-    }
-    return null;
+  const addQuestion = () => {
+    setQuestions((prev) => [...prev, makeEmptyQuestion()]);
+  };
+
+  const removeQuestion = (index: number) => {
+    setQuestions((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const toggleExpand = (index: number) => {
+    setQuestions((prev) =>
+      prev.map((q, i) => (i === index ? { ...q, expanded: !q.expanded } : q))
+    );
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value, 10);
+    setPrice(isNaN(val) || val < 0 ? 0 : val);
+  };
+
+  const handleNegativeMarkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    setNegativeMarkValue(isNaN(val) ? 0 : val);
   };
 
   const handleSave = async () => {
-    const err = validate();
-    if (err) { toast.error(err); return; }
-
     const token = getSessionToken();
-    if (!token) { toast.error('Session expired. Please log in again.'); return; }
+    if (!token) {
+      toast.error('Session expired. Please log in again.');
+      return;
+    }
 
-    const payload: Question[] = questions.map((q) => ({
+    if (!title.trim()) {
+      toast.error('Test title is required.');
+      return;
+    }
+    if (!category) {
+      toast.error('Category is required.');
+      return;
+    }
+
+    const questionPayload: Question[] = questions.map((q) => ({
       question: q.question,
       options: q.options,
       answer: q.answer,
+      explanation: q.explanation || undefined,
+      questionHi: q.questionHi || undefined,
+      optionsHi: q.optionsHi.some((o) => o.trim()) ? q.optionsHi : undefined,
+      explanationHi: q.explanationHi || undefined,
     }));
 
     try {
-      if (isEditing && editingTest) {
-        await updateTest.mutateAsync({ token, id: editingTest.id, title, category, questions: payload });
+      if (editingTest) {
+        await updateTest({
+          token,
+          id: editingTest.id,
+          title,
+          category,
+          questions: questionPayload,
+          price: BigInt(price),
+          negativeMarkValue,
+        });
         toast.success('Test updated successfully');
       } else {
-        await addTest.mutateAsync({ token, title, category, questions: payload });
+        await addTest({
+          token,
+          title,
+          category,
+          questions: questionPayload,
+          price: BigInt(price),
+          negativeMarkValue,
+        });
         toast.success('Test added successfully');
       }
       onClose();
@@ -144,40 +212,39 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
     }
   };
 
-  const isPending = addTest.isPending || updateTest.isPending;
-
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl bg-card border-border text-foreground p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
-          <DialogTitle className="font-heading text-xl text-foreground">
-            {isEditing ? 'Edit Test' : 'Add New Test'}
+      <DialogContent className="bg-navy-mid border-border text-foreground max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-heading text-gold text-xl">
+            {editingTest ? 'Edit Test' : 'Add New Test'}
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[70vh]">
-          <div className="px-6 py-5 space-y-6">
+        <div className="space-y-6 py-2">
+          {/* Title + Category + Price + Negative Mark row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Title */}
-            <div className="space-y-2">
-              <Label className="text-foreground/90 font-medium">Test Title</Label>
+            <div>
+              <Label className="text-foreground font-semibold mb-1.5 block">Test Title</Label>
               <Input
-                placeholder="e.g. UPSC Prelims Mock Test 1"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="bg-input border-border focus:border-gold"
+                placeholder="Enter test title"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-gold"
               />
             </div>
 
             {/* Category */}
-            <div className="space-y-2">
-              <Label className="text-foreground/90 font-medium">Category</Label>
+            <div>
+              <Label className="text-foreground font-semibold mb-1.5 block">Category</Label>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="bg-input border-border focus:border-gold">
+                <SelectTrigger className="bg-muted border-border text-foreground focus:border-gold">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
                   {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat} className="hover:bg-navy-light">
+                    <SelectItem key={cat} value={cat} className="text-foreground hover:bg-accent">
                       {cat}
                     </SelectItem>
                   ))}
@@ -185,84 +252,181 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
               </Select>
             </div>
 
-            {/* Questions */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-foreground/90 font-medium">
-                  Questions ({questions.length})
-                </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddQuestion}
-                  className="gap-1.5 border-gold/40 text-gold hover:bg-gold/10 hover:text-gold text-xs"
-                >
-                  <Plus size={13} />
-                  Add Question
-                </Button>
-              </div>
+            {/* Price */}
+            <div>
+              <Label className="text-foreground font-semibold mb-1.5 flex items-center gap-1">
+                <IndianRupee className="h-3.5 w-3.5 text-gold" />
+                Price (₹)
+              </Label>
+              <Input
+                type="number"
+                min={0}
+                step={1}
+                value={price}
+                onChange={handlePriceChange}
+                placeholder="0 = Free"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-gold"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Set 0 for free tests</p>
+            </div>
 
-              {questions.map((q, qIdx) => (
-                <div
-                  key={qIdx}
-                  className="p-4 rounded-lg border border-border bg-navy-light/30 space-y-3"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-semibold text-gold mt-1">Q{qIdx + 1}</span>
+            {/* Negative Mark */}
+            <div>
+              <Label className="text-foreground font-semibold mb-1.5 block">
+                Negative Mark per Wrong Answer
+              </Label>
+              <Input
+                type="number"
+                step={0.01}
+                value={negativeMarkValue}
+                onChange={handleNegativeMarkChange}
+                placeholder="e.g. -0.33 or 0"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-gold"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Use negative values (e.g. -0.33) or 0 for no penalty</p>
+            </div>
+          </div>
+
+          {/* Questions */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-foreground font-semibold">Questions ({questions.length})</Label>
+              <Button
+                type="button"
+                size="sm"
+                onClick={addQuestion}
+                className="bg-gold hover:bg-gold-light text-navy-deep font-semibold"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Question
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {questions.map((q, qi) => (
+                <div key={qi} className="bg-muted border border-border rounded-xl overflow-hidden">
+                  {/* Question Header */}
+                  <div className="flex items-center justify-between px-4 py-3 bg-accent/30">
+                    <button
+                      type="button"
+                      onClick={() => toggleExpand(qi)}
+                      className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors flex-1 text-left"
+                    >
+                      {q.expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      <span className="font-semibold text-sm">
+                        Q{qi + 1}: {q.question ? q.question.slice(0, 50) + (q.question.length > 50 ? '...' : '') : 'New Question'}
+                      </span>
+                    </button>
                     {questions.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => handleRemoveQuestion(qIdx)}
-                        className="text-muted-foreground hover:text-destructive transition-colors"
+                        onClick={() => removeQuestion(qi)}
+                        className="text-destructive hover:text-red-400 transition-colors ml-2"
                       >
-                        <X size={14} />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     )}
                   </div>
 
-                  <Input
-                    placeholder="Question text"
-                    value={q.question}
-                    onChange={(e) => handleQuestionChange(qIdx, 'question', e.target.value)}
-                    className="bg-input border-border focus:border-gold text-sm"
-                  />
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {q.options.map((opt, optIdx) => (
-                      <div key={optIdx} className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleSetAnswer(qIdx, opt || `Option ${optIdx + 1}`)}
-                          className={`h-5 w-5 rounded-full border-2 shrink-0 transition-all ${
-                            q.answer === opt && opt
-                              ? 'border-gold bg-gold'
-                              : 'border-muted-foreground hover:border-gold'
-                          }`}
-                          title="Set as correct answer"
-                        />
-                        <Input
-                          placeholder={`Option ${optIdx + 1}`}
-                          value={opt}
-                          onChange={(e) => handleOptionChange(qIdx, optIdx, e.target.value)}
-                          className="bg-input border-border focus:border-gold text-sm h-8"
-                        />
+                  {q.expanded && (
+                    <div className="p-4 space-y-5">
+                      {/* English Section */}
+                      <div className="space-y-3">
+                        <div className="text-xs font-bold text-gold uppercase tracking-widest border-b border-border pb-1">
+                          English
+                        </div>
+                        <div>
+                          <Label className="text-muted-foreground text-xs mb-1 block">Question (English)</Label>
+                          <Textarea
+                            value={q.question}
+                            onChange={(e) => updateQuestion(qi, 'question', e.target.value)}
+                            placeholder="Enter question in English"
+                            className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-gold resize-none text-sm"
+                            rows={2}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {q.options.map((opt, oi) => (
+                            <div key={oi}>
+                              <Label className="text-muted-foreground text-xs mb-1 block">Option {oi + 1}</Label>
+                              <Input
+                                value={opt}
+                                onChange={(e) => updateOption(qi, oi, e.target.value)}
+                                placeholder={`Option ${oi + 1}`}
+                                className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-gold text-sm"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <div>
+                          <Label className="text-muted-foreground text-xs mb-1 block">Correct Answer</Label>
+                          <Input
+                            value={q.answer}
+                            onChange={(e) => updateQuestion(qi, 'answer', e.target.value)}
+                            placeholder="Must match one of the options exactly"
+                            className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-gold text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-muted-foreground text-xs mb-1 block">Explanation (optional)</Label>
+                          <Textarea
+                            value={q.explanation}
+                            onChange={(e) => updateQuestion(qi, 'explanation', e.target.value)}
+                            placeholder="Explanation for the correct answer"
+                            className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-gold resize-none text-sm"
+                            rows={2}
+                          />
+                        </div>
                       </div>
-                    ))}
-                  </div>
 
-                  {q.answer && (
-                    <p className="text-xs text-success">
-                      ✓ Correct answer: <span className="font-medium">{q.answer}</span>
-                    </p>
+                      {/* Hindi Section */}
+                      <div className="space-y-3">
+                        <div className="text-xs font-bold text-sky uppercase tracking-widest border-b border-border pb-1">
+                          Hindi (हिंदी)
+                        </div>
+                        <div>
+                          <Label className="text-muted-foreground text-xs mb-1 block">Question (Hindi)</Label>
+                          <Textarea
+                            value={q.questionHi}
+                            onChange={(e) => updateQuestion(qi, 'questionHi', e.target.value)}
+                            placeholder="हिंदी में प्रश्न दर्ज करें"
+                            className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-sky resize-none text-sm"
+                            rows={2}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {q.optionsHi.map((opt, oi) => (
+                            <div key={oi}>
+                              <Label className="text-muted-foreground text-xs mb-1 block">Option {oi + 1} (Hindi)</Label>
+                              <Input
+                                value={opt}
+                                onChange={(e) => updateOptionHi(qi, oi, e.target.value)}
+                                placeholder={`विकल्प ${oi + 1}`}
+                                className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-sky text-sm"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <div>
+                          <Label className="text-muted-foreground text-xs mb-1 block">Explanation (Hindi, optional)</Label>
+                          <Textarea
+                            value={q.explanationHi}
+                            onChange={(e) => updateQuestion(qi, 'explanationHi', e.target.value)}
+                            placeholder="हिंदी में स्पष्टीकरण"
+                            className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-sky resize-none text-sm"
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               ))}
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
-        <DialogFooter className="px-6 py-4 border-t border-border gap-2">
+        <DialogFooter className="gap-2 pt-2">
           <Button
             variant="ghost"
             onClick={onClose}
@@ -274,16 +438,14 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
           <Button
             onClick={handleSave}
             disabled={isPending}
-            className="bg-gold text-navy-deep hover:bg-gold-light font-semibold"
+            className="bg-gold hover:bg-gold-light text-navy-deep font-heading font-bold"
           >
             {isPending ? (
               <span className="flex items-center gap-2">
                 <span className="h-4 w-4 border-2 border-navy-deep/30 border-t-navy-deep rounded-full animate-spin" />
                 Saving…
               </span>
-            ) : (
-              isEditing ? 'Update Test' : 'Add Test'
-            )}
+            ) : editingTest ? 'Update Test' : 'Add Test'}
           </Button>
         </DialogFooter>
       </DialogContent>

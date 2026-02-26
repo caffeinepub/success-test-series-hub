@@ -10,8 +10,21 @@ import { IDL } from '@icp-sdk/core/candid';
 
 export const Question = IDL.Record({
   'question' : IDL.Text,
+  'explanationHi' : IDL.Opt(IDL.Text),
+  'explanation' : IDL.Opt(IDL.Text),
   'answer' : IDL.Text,
+  'optionsHi' : IDL.Opt(IDL.Vec(IDL.Text)),
+  'questionHi' : IDL.Opt(IDL.Text),
   'options' : IDL.Vec(IDL.Text),
+});
+export const UserRole = IDL.Variant({
+  'admin' : IDL.Null,
+  'user' : IDL.Null,
+  'guest' : IDL.Null,
+});
+export const UserProfile = IDL.Record({
+  'name' : IDL.Text,
+  'email' : IDL.Opt(IDL.Text),
 });
 export const ContactSubmission = IDL.Record({
   'name' : IDL.Text,
@@ -19,11 +32,36 @@ export const ContactSubmission = IDL.Record({
   'message' : IDL.Text,
   'timestamp' : IDL.Int,
 });
+export const CurrentAffairs = IDL.Record({
+  'id' : IDL.Nat,
+  'content' : IDL.Text,
+  'date' : IDL.Text,
+});
+export const Newspaper = IDL.Record({
+  'id' : IDL.Nat,
+  'date' : IDL.Text,
+  'link' : IDL.Text,
+});
+export const Slider = IDL.Record({
+  'id' : IDL.Nat,
+  'title' : IDL.Opt(IDL.Text),
+  'imageUrl' : IDL.Text,
+});
+export const Time = IDL.Int;
+export const Student = IDL.Record({
+  'id' : IDL.Nat,
+  'otp' : IDL.Opt(IDL.Text),
+  'mobileNumber' : IDL.Text,
+  'profilePhotoBase64' : IDL.Opt(IDL.Text),
+  'registeredAt' : Time,
+});
 export const Test = IDL.Record({
   'id' : IDL.Nat,
   'title' : IDL.Text,
+  'negativeMarkValue' : IDL.Float64,
   'category' : IDL.Text,
   'questions' : IDL.Vec(Question),
+  'price' : IDL.Nat,
 });
 export const Ranker = IDL.Record({
   'studentName' : IDL.Text,
@@ -33,37 +71,70 @@ export const Ranker = IDL.Record({
 });
 
 export const idlService = IDL.Service({
+  '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addCurrentAffairs' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+  'addNewspaper' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
   'addRanker' : IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Nat], [], []),
+  'addSlider' : IDL.Func([IDL.Text, IDL.Text, IDL.Opt(IDL.Text)], [], []),
   'addTest' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Vec(Question)],
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Vec(Question), IDL.Nat, IDL.Float64],
       [],
       [],
     ),
+  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'deleteCurrentAffairs' : IDL.Func([IDL.Text, IDL.Nat], [], []),
+  'deleteNewspaper' : IDL.Func([IDL.Text, IDL.Nat], [], []),
   'deleteRanker' : IDL.Func([IDL.Text, IDL.Nat], [], []),
+  'deleteSlider' : IDL.Func([IDL.Text, IDL.Nat], [], []),
   'deleteTest' : IDL.Func([IDL.Text, IDL.Nat], [], []),
-  'generateQuestions' : IDL.Func([IDL.Text, IDL.Text], [IDL.Vec(Question)], []),
-  'getContactSubmissions' : IDL.Func(
+  'generateQuestions' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Vec(Question)],
+      [],
+    ),
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+  'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getContactSubmissionsUser' : IDL.Func(
       [IDL.Text],
       [IDL.Vec(ContactSubmission)],
       ['query'],
     ),
-  'getContactSubmissionsUser' : IDL.Func(
-      [],
-      [IDL.Vec(ContactSubmission)],
-      ['query'],
-    ),
+  'getCurrentAffairs' : IDL.Func([], [IDL.Vec(CurrentAffairs)], ['query']),
+  'getNewspapers' : IDL.Func([], [IDL.Vec(Newspaper)], ['query']),
+  'getSliders' : IDL.Func([], [IDL.Vec(Slider)], ['query']),
+  'getStudentProfile' : IDL.Func([IDL.Text], [IDL.Opt(Student)], ['query']),
+  'getStudents' : IDL.Func([IDL.Text], [IDL.Vec(Student)], ['query']),
   'getTestById' : IDL.Func([IDL.Nat], [Test], ['query']),
   'getTests' : IDL.Func([], [IDL.Vec(Test)], ['query']),
   'getTopRankers' : IDL.Func([], [IDL.Vec(Ranker)], ['query']),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
+    ),
+  'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'login' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
   'logout' : IDL.Func([IDL.Text], [], []),
+  'requestOtp' : IDL.Func([IDL.Text], [], []),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'studentLogout' : IDL.Func([IDL.Text], [], []),
   'submitContact' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+  'updateStudentProfilePhoto' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'updateTest' : IDL.Func(
-      [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Vec(Question)],
+      [
+        IDL.Text,
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Vec(Question),
+        IDL.Nat,
+        IDL.Float64,
+      ],
       [],
       [],
     ),
   'validateSession' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+  'verifyOtp' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text, IDL.Text], []),
 });
 
 export const idlInitArgs = [];
@@ -71,8 +142,21 @@ export const idlInitArgs = [];
 export const idlFactory = ({ IDL }) => {
   const Question = IDL.Record({
     'question' : IDL.Text,
+    'explanationHi' : IDL.Opt(IDL.Text),
+    'explanation' : IDL.Opt(IDL.Text),
     'answer' : IDL.Text,
+    'optionsHi' : IDL.Opt(IDL.Vec(IDL.Text)),
+    'questionHi' : IDL.Opt(IDL.Text),
     'options' : IDL.Vec(IDL.Text),
+  });
+  const UserRole = IDL.Variant({
+    'admin' : IDL.Null,
+    'user' : IDL.Null,
+    'guest' : IDL.Null,
+  });
+  const UserProfile = IDL.Record({
+    'name' : IDL.Text,
+    'email' : IDL.Opt(IDL.Text),
   });
   const ContactSubmission = IDL.Record({
     'name' : IDL.Text,
@@ -80,11 +164,36 @@ export const idlFactory = ({ IDL }) => {
     'message' : IDL.Text,
     'timestamp' : IDL.Int,
   });
+  const CurrentAffairs = IDL.Record({
+    'id' : IDL.Nat,
+    'content' : IDL.Text,
+    'date' : IDL.Text,
+  });
+  const Newspaper = IDL.Record({
+    'id' : IDL.Nat,
+    'date' : IDL.Text,
+    'link' : IDL.Text,
+  });
+  const Slider = IDL.Record({
+    'id' : IDL.Nat,
+    'title' : IDL.Opt(IDL.Text),
+    'imageUrl' : IDL.Text,
+  });
+  const Time = IDL.Int;
+  const Student = IDL.Record({
+    'id' : IDL.Nat,
+    'otp' : IDL.Opt(IDL.Text),
+    'mobileNumber' : IDL.Text,
+    'profilePhotoBase64' : IDL.Opt(IDL.Text),
+    'registeredAt' : Time,
+  });
   const Test = IDL.Record({
     'id' : IDL.Nat,
     'title' : IDL.Text,
+    'negativeMarkValue' : IDL.Float64,
     'category' : IDL.Text,
     'questions' : IDL.Vec(Question),
+    'price' : IDL.Nat,
   });
   const Ranker = IDL.Record({
     'studentName' : IDL.Text,
@@ -94,41 +203,70 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
+    '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addCurrentAffairs' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+    'addNewspaper' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
     'addRanker' : IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Nat], [], []),
+    'addSlider' : IDL.Func([IDL.Text, IDL.Text, IDL.Opt(IDL.Text)], [], []),
     'addTest' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Vec(Question)],
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Vec(Question), IDL.Nat, IDL.Float64],
         [],
         [],
       ),
+    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'deleteCurrentAffairs' : IDL.Func([IDL.Text, IDL.Nat], [], []),
+    'deleteNewspaper' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'deleteRanker' : IDL.Func([IDL.Text, IDL.Nat], [], []),
+    'deleteSlider' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'deleteTest' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'generateQuestions' : IDL.Func(
-        [IDL.Text, IDL.Text],
+        [IDL.Text, IDL.Text, IDL.Text],
         [IDL.Vec(Question)],
         [],
       ),
-    'getContactSubmissions' : IDL.Func(
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+    'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getContactSubmissionsUser' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(ContactSubmission)],
         ['query'],
       ),
-    'getContactSubmissionsUser' : IDL.Func(
-        [],
-        [IDL.Vec(ContactSubmission)],
-        ['query'],
-      ),
+    'getCurrentAffairs' : IDL.Func([], [IDL.Vec(CurrentAffairs)], ['query']),
+    'getNewspapers' : IDL.Func([], [IDL.Vec(Newspaper)], ['query']),
+    'getSliders' : IDL.Func([], [IDL.Vec(Slider)], ['query']),
+    'getStudentProfile' : IDL.Func([IDL.Text], [IDL.Opt(Student)], ['query']),
+    'getStudents' : IDL.Func([IDL.Text], [IDL.Vec(Student)], ['query']),
     'getTestById' : IDL.Func([IDL.Nat], [Test], ['query']),
     'getTests' : IDL.Func([], [IDL.Vec(Test)], ['query']),
     'getTopRankers' : IDL.Func([], [IDL.Vec(Ranker)], ['query']),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
+      ),
+    'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'login' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
     'logout' : IDL.Func([IDL.Text], [], []),
+    'requestOtp' : IDL.Func([IDL.Text], [], []),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'studentLogout' : IDL.Func([IDL.Text], [], []),
     'submitContact' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+    'updateStudentProfilePhoto' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'updateTest' : IDL.Func(
-        [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Vec(Question)],
+        [
+          IDL.Text,
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Vec(Question),
+          IDL.Nat,
+          IDL.Float64,
+        ],
         [],
         [],
       ),
     'validateSession' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+    'verifyOtp' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text, IDL.Text], []),
   });
 };
 

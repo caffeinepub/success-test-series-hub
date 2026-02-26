@@ -8,71 +8,71 @@
   :root {
     --radius: 0.5rem;
 
-    /* Navy palette */
-    --background: 0.14 0.04 255;
-    --foreground: 0.95 0.01 255;
-    --card: 0.18 0.05 255;
-    --card-foreground: 0.95 0.01 255;
-    --popover: 0.2 0.05 255;
-    --popover-foreground: 0.95 0.01 255;
+    /* Deep navy backgrounds — rich, saturated */
+    --background: oklch(0.11 0.055 265);
+    --foreground: oklch(0.96 0.01 255);
+    --card: oklch(0.15 0.06 265);
+    --card-foreground: oklch(0.96 0.01 255);
+    --popover: oklch(0.17 0.06 265);
+    --popover-foreground: oklch(0.96 0.01 255);
 
-    /* Primary = gold */
-    --primary: 0.78 0.14 85;
-    --primary-foreground: 0.12 0.04 255;
+    /* Primary = vivid gold */
+    --primary: oklch(0.80 0.17 82);
+    --primary-foreground: oklch(0.10 0.04 265);
 
-    /* Secondary = sky blue */
-    --secondary: 0.55 0.18 240;
-    --secondary-foreground: 0.98 0 0;
+    /* Secondary = bright sky blue */
+    --secondary: oklch(0.62 0.22 238);
+    --secondary-foreground: oklch(0.10 0.04 265);
 
     /* Muted */
-    --muted: 0.22 0.04 255;
-    --muted-foreground: 0.65 0.04 255;
+    --muted: oklch(0.20 0.055 265);
+    --muted-foreground: oklch(0.62 0.05 255);
 
-    /* Accent = gold tint */
-    --accent: 0.25 0.05 255;
-    --accent-foreground: 0.78 0.14 85;
+    /* Accent */
+    --accent: oklch(0.22 0.06 265);
+    --accent-foreground: oklch(0.80 0.17 82);
 
     /* Destructive */
-    --destructive: 0.577 0.245 27.325;
-    --destructive-foreground: 0.985 0 0;
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
 
     /* Borders */
-    --border: 0.28 0.06 255;
-    --input: 0.25 0.05 255;
-    --ring: 0.78 0.14 85;
+    --border: oklch(0.26 0.07 265);
+    --input: oklch(0.22 0.06 265);
+    --ring: oklch(0.80 0.17 82);
 
-    /* Success green */
-    --success: 0.55 0.18 145;
-    --success-foreground: 0.98 0 0;
+    /* Success green — vivid */
+    --success: oklch(0.60 0.20 145);
+    --success-foreground: oklch(0.10 0.04 265);
 
-    /* Gold */
-    --gold: 0.78 0.14 85;
-    --gold-light: 0.88 0.12 85;
-    --gold-dark: 0.65 0.16 75;
+    /* Gold tokens — vivid amber-gold */
+    --gold: oklch(0.80 0.17 82);
+    --gold-light: oklch(0.88 0.14 82);
+    --gold-dark: oklch(0.68 0.19 72);
 
-    /* Navy shades */
-    --navy-deep: 0.10 0.05 255;
-    --navy-mid: 0.16 0.06 255;
-    --navy-light: 0.22 0.06 255;
+    /* Navy shades — deep, rich */
+    --navy-deep: oklch(0.09 0.05 265);
+    --navy-mid: oklch(0.14 0.06 265);
+    --navy-light: oklch(0.20 0.065 265);
 
-    /* Sky blue */
-    --sky: 0.60 0.20 240;
+    /* Sky blue — vivid, bright */
+    --sky: oklch(0.65 0.22 238);
 
     /* Chart colors */
-    --chart-1: 0.78 0.14 85;
-    --chart-2: 0.60 0.20 240;
-    --chart-3: 0.55 0.18 145;
-    --chart-4: 0.65 0.22 30;
-    --chart-5: 0.70 0.18 200;
+    --chart-1: oklch(0.80 0.17 82);
+    --chart-2: oklch(0.65 0.22 238);
+    --chart-3: oklch(0.60 0.20 145);
+    --chart-4: oklch(0.68 0.22 30);
+    --chart-5: oklch(0.72 0.20 200);
 
-    --sidebar: 0.12 0.05 255;
-    --sidebar-foreground: 0.95 0.01 255;
-    --sidebar-primary: 0.78 0.14 85;
-    --sidebar-primary-foreground: 0.12 0.04 255;
-    --sidebar-accent: 0.20 0.05 255;
-    --sidebar-accent-foreground: 0.95 0.01 255;
-    --sidebar-border: 0.28 0.06 255;
-    --sidebar-ring: 0.78 0.14 85;
+    --sidebar: oklch(0.10 0.055 265);
+    --sidebar-foreground: oklch(0.96 0.01 255);
+    --sidebar-primary: oklch(0.80 0.17 82);
+    --sidebar-primary-foreground: oklch(0.10 0.04 265);
+    --sidebar-accent: oklch(0.18 0.06 265);
+    --sidebar-accent-foreground: oklch(0.96 0.01 255);
+    --sidebar-border: oklch(0.26 0.07 265);
+    --sidebar-ring: oklch(0.80 0.17 82);
   }
 
   * {
@@ -84,7 +84,8 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: oklch(0.11 0.055 265);
+    color: oklch(0.96 0.01 255);
     font-family: 'Inter', sans-serif;
   }
 
@@ -97,39 +98,69 @@
 
 @layer utilities {
   .text-gold {
-    color: oklch(var(--gold));
+    color: oklch(0.80 0.17 82);
   }
   .bg-gold {
-    background-color: oklch(var(--gold));
+    background-color: oklch(0.80 0.17 82);
   }
   .border-gold {
-    border-color: oklch(var(--gold));
+    border-color: oklch(0.80 0.17 82);
   }
   .text-sky {
-    color: oklch(var(--sky));
+    color: oklch(0.65 0.22 238);
+  }
+  .bg-sky {
+    background-color: oklch(0.65 0.22 238);
+  }
+  .border-sky {
+    border-color: oklch(0.65 0.22 238);
+  }
+  .text-success {
+    color: oklch(0.60 0.20 145);
+  }
+  .bg-success {
+    background-color: oklch(0.60 0.20 145);
+  }
+  .border-success {
+    border-color: oklch(0.60 0.20 145);
   }
   .bg-navy-deep {
-    background-color: oklch(var(--navy-deep));
+    background-color: oklch(0.09 0.05 265);
   }
   .bg-navy-mid {
-    background-color: oklch(var(--navy-mid));
+    background-color: oklch(0.14 0.06 265);
   }
   .bg-navy-light {
-    background-color: oklch(var(--navy-light));
+    background-color: oklch(0.20 0.065 265);
+  }
+  .text-navy-deep {
+    color: oklch(0.09 0.05 265);
   }
   .btn-success {
-    background-color: oklch(var(--success));
-    color: oklch(var(--success-foreground));
+    background-color: oklch(0.60 0.20 145);
+    color: oklch(0.10 0.04 265);
     @apply font-semibold px-6 py-2.5 rounded-md transition-all hover:opacity-90 active:scale-95;
   }
   .card-navy {
-    background-color: oklch(var(--card));
+    background-color: oklch(0.15 0.06 265);
     @apply border border-border rounded-xl shadow-lg;
   }
   .gold-gradient {
-    background: linear-gradient(135deg, oklch(0.78 0.14 85), oklch(0.88 0.12 85));
+    background: linear-gradient(135deg, oklch(0.80 0.17 82), oklch(0.88 0.14 82));
+  }
+  .sky-gradient {
+    background: linear-gradient(135deg, oklch(0.65 0.22 238), oklch(0.72 0.18 220));
+  }
+  .hero-gradient {
+    background: linear-gradient(135deg, oklch(0.09 0.05 265) 0%, oklch(0.13 0.08 255) 50%, oklch(0.11 0.06 270) 100%);
   }
   .section-divider {
     @apply border-t border-border;
+  }
+  .font-rajdhani {
+    font-family: 'Rajdhani', sans-serif;
+  }
+  .font-heading {
+    font-family: 'Rajdhani', sans-serif;
   }
 }
