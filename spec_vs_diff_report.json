@@ -1,80 +1,23 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T07:57:52.685Z",
-  "summary": "The diff implements most of the required Admin Panel and Login System features across frontend and backend. The frontend correctly adds admin routing, login page, dashboard, sidebar, and management panels for tests, rankers, and contact submissions. The backend adds authentication, CRUD for tests, ranker management, and contact submissions query. However, several backend requirements have notable gaps: addTest() does not return the new test id (returns void), login() uses Runtime.trap instead of returning a proper error variant, the password is stored in plaintext rather than as a hash, and addTest/updateTest/deleteTest return void rather than ok/error variants. REQ-24 uses custom history.pushState routing instead of React Router as explicitly required.",
-  "missing_requirements": [
-    {
-      "id": "REQ-15",
-      "requirement": "login() should return an error variant on failure (not trap/panic). Store a hardcoded password hash, not plaintext.",
-      "reason": "backend/main.mo uses Runtime.trap() for login failure instead of returning an error variant. The password is stored as plaintext ('password') in adminPasswordHash rather than as a hash.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-16",
-      "requirement": "addTest() must return the new test id; updateTest() and deleteTest() must return ok or an error variant.",
-      "reason": "In backend/main.mo, addTest(), updateTest(), and deleteTest() all return async () (void) rather than the new test id or an ok/error result type as specified in the AC.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-24",
-      "requirement": "Client-side routing must use React Router.",
-      "reason": "App.tsx implements routing using custom window.location.pathname inspection and history.pushState instead of React Router (no BrowserRouter, Route, or Routes components are used).",
-      "evidence": [
-        "frontend/src/App.tsx"
-      ]
-    }
-  ],
+  "generatedAt": "2026-02-26T09:53:25.482Z",
+  "summary": "The diff correctly updates the hardcoded admin credentials in backend/main.mo to 'STSHubsachin' and 'success@#2003', and the login() function validates against these new credentials. The validateSession() and admin-guarded functions remain intact. A migration module is also added to handle state schema changes. All core requirements of REQ-25 appear to be implemented.",
+  "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Admin session expiration / TTL (1-hour expiry on tokens)",
-      "reason": "The spec only requires validateSession to return true for active tokens and logout to invalidate them. The backend adds a time-based expiration (3600 seconds) which was not requested.",
+      "description": "A migration module (backend/migration.mo) was added to handle actor state migration from an old schema (with adminPasswordHash map) to a new schema (without it).",
+      "reason": "The build request only asked to update hardcoded credentials in backend/main.mo. No migration infrastructure was requested, and the constraints explicitly say 'Do not change any other backend logic, data models, or existing CRUD functions.'",
       "evidence": [
+        "backend/migration.mo",
         "backend/main.mo"
-      ]
-    },
-    {
-      "description": "Password show/hide toggle on the Admin Login page",
-      "reason": "The spec describes a centered login card with Username, Password, and a Login button. The eye/EyeOff toggle for password visibility was not requested.",
-      "evidence": [
-        "frontend/src/pages/AdminLogin.tsx"
-      ]
-    },
-    {
-      "description": "'Back to main site' link in the Admin Sidebar",
-      "reason": "The spec only requires the sidebar to have Tests, Rankers, Contact Submissions, and a Logout button. The extra 'Back to main site' link was not requested.",
-      "evidence": [
-        "frontend/src/components/AdminSidebar.tsx"
-      ]
-    },
-    {
-      "description": "Migration module for converting rankers from array to Map",
-      "reason": "backend/migration.mo provides a data migration from an old actor shape to a new one. No migration was requested in the build spec.",
-      "evidence": [
-        "backend/migration.mo"
       ]
     }
   ],
-  "confidence": 0.8,
+  "confidence": 0.82,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
-    "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/AdminSidebar.tsx",
-    "frontend/src/components/RankerFormModal.tsx",
-    "frontend/src/components/TestFormModal.tsx",
-    "frontend/src/hooks/useAuth.ts",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/AdminContacts.tsx",
-    "frontend/src/pages/AdminDashboard.tsx",
-    "frontend/src/pages/AdminLogin.tsx",
-    "frontend/src/pages/AdminRankers.tsx",
-    "frontend/src/pages/AdminTests.tsx",
     "project_state.json"
   ]
 }

@@ -1,6 +1,6 @@
 import Map "mo:core/Map";
+import Text "mo:core/Text";
 import Nat "mo:core/Nat";
-import Array "mo:core/Array";
 
 module {
   type Question = {
@@ -30,26 +30,38 @@ module {
     score : Nat;
   };
 
-  type NewActor = {
-    tests : Map.Map<Nat, Test>;
-    contactSubmissions : Map.Map<Nat, ContactSubmission>;
-    rankers : Map.Map<Nat, Ranker>;
+  type AdminSession = {
+    token : Text;
+    expiration : Int;
   };
 
   type OldActor = {
     tests : Map.Map<Nat, Test>;
     contactSubmissions : Map.Map<Nat, ContactSubmission>;
-    rankers : [Ranker];
+    adminSessions : Map.Map<Text, AdminSession>;
+    adminPasswordHash : Map.Map<Text, Text>;
+    rankers : Map.Map<Nat, Ranker>;
+    nextContactId : Nat;
+    nextRankId : Nat;
+  };
+
+  type NewActor = {
+    tests : Map.Map<Nat, Test>;
+    contactSubmissions : Map.Map<Nat, ContactSubmission>;
+    adminSessions : Map.Map<Text, AdminSession>;
+    rankers : Map.Map<Nat, Ranker>;
+    nextContactId : Nat;
+    nextRankId : Nat;
   };
 
   public func run(old : OldActor) : NewActor {
-    let newRankers = Map.empty<Nat, Ranker>();
-    for (i in Nat.range(0, old.rankers.size())) {
-      newRankers.add(i + 1, old.rankers[i]);
-    };
     {
-      old with
-      rankers = newRankers
+      tests = old.tests;
+      contactSubmissions = old.contactSubmissions;
+      adminSessions = old.adminSessions;
+      rankers = old.rankers;
+      nextContactId = old.nextContactId;
+      nextRankId = old.nextRankId;
     };
   };
 };

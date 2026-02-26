@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
+  "projectStateVersion": 7,
   "summary": "Success Test Series Hub — an exam preparation web app for UPSC, BPSC, SSC, Railway, and State Exams. Includes free/paid test series, AI-powered question generator, top rankers leaderboard, exam categories, and a contact form. Now adding a login system and admin panel.",
   "architectural_notes": [
     "Backend API endpoints expected: GET /tests (returns test list) and POST /ai/generate (returns AI-generated questions)",
@@ -261,6 +261,20 @@
       "summary": "Add client-side routing to the frontend application to support the /admin and /admin/dashboard routes. Use React Router. The existing single-page app layout (App.tsx) should continue to render at the root route /. The /admin route should render the Admin Login page and /admin/dashboard should render the Admin Dashboard. Do not alter the existing public-facing page sections.",
       "reqIds": [
         "REQ-24"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Update backend admin credentials: set username to 'STSHubsachin' and password to 'success@#2003'",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Update the hardcoded admin credentials in the backend actor (backend/main.mo). Set the admin username to 'STSHubsachin' and the admin password to 'success@#2003'. Ensure the login() function validates against these new credentials and returns a valid session token on success.",
+      "reqIds": [
+        "REQ-25"
       ],
       "status": "pending"
     }

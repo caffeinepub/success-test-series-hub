@@ -1,208 +1,37 @@
 {
   "kind": "build_request",
-  "title": "Admin Panel and Login System",
+  "title": "Update admin credentials in backend",
   "projectName": "Success Test Series Hub",
-  "priority": "normal",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-15",
-      "text": "Add backend support for admin authentication. Store a hardcoded admin username and password hash in the actor. Expose a login(username, password) update function that returns a session token (a random text token) on success, or an error on failure. Expose a validateSession(token) query that returns true if the token is active. Expose a logout(token) update function that invalidates the session token.",
+      "id": "REQ-25",
+      "text": "Update the hardcoded admin credentials in the backend actor (backend/main.mo). Set the admin username to 'STSHubsachin' and the admin password to 'success@#2003'. Ensure the login() function validates against these new credentials and returns a valid session token on success.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-8"
+          "msg-latest"
         ],
         "quotes": [
-          "Admin panel and login build"
+          "Please update the backend code with these new credentials: Username:STSHubsachin and Password: success@#2003"
         ]
       },
       "acceptanceCriteria": [
-        "login() returns a session token when credentials are correct",
-        "login() returns an error variant when credentials are wrong",
-        "validateSession() returns true for a valid active token",
-        "logout() invalidates the token so validateSession() returns false afterward"
-      ]
-    },
-    {
-      "id": "REQ-16",
-      "text": "Add backend admin CRUD functions for tests. Expose addTest(token, title, category, questions) update that creates a new test (validates admin session first), updateTest(token, id, title, category, questions) update that modifies an existing test, and deleteTest(token, id) update that removes a test. All functions must reject with an error if the session token is invalid.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "Admin panel and login build"
-        ]
-      },
-      "acceptanceCriteria": [
-        "addTest() creates a new test record and returns the new test id",
-        "updateTest() modifies the matching test and returns ok",
-        "deleteTest() removes the matching test and returns ok",
-        "All three functions return an error when called with an invalid session token"
-      ]
-    },
-    {
-      "id": "REQ-17",
-      "text": "Add backend admin functions for managing the top rankers leaderboard. Expose addRanker(token, studentName, examCategory, score) update and deleteRanker(token, rank) update. Re-sort and re-rank entries after each mutation. All functions must validate the admin session token and reject with an error if invalid.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "Admin panel and login build"
-        ]
-      },
-      "acceptanceCriteria": [
-        "addRanker() inserts a new ranker and re-ranks the leaderboard",
-        "deleteRanker() removes the specified ranker and re-ranks the leaderboard",
-        "Both functions return an error for an invalid session token"
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "text": "Add a backend query function getContactSubmissions(token) that returns all stored contact form submissions. Must validate the admin session token and return an error if invalid.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "Admin panel and login build"
-        ]
-      },
-      "acceptanceCriteria": [
-        "getContactSubmissions() returns the full list of contact submissions to a valid admin session",
-        "getContactSubmissions() returns an error when called with an invalid session token"
-      ]
-    },
-    {
-      "id": "REQ-19",
-      "text": "Create a standalone Admin Login page at route /admin. Render a centered login card with Username and Password fields and a 'Login' button. On submit, call the backend login() function. On success, store the session token in React state (or localStorage) and redirect to the Admin Dashboard. On failure, display an inline error message 'Invalid credentials'. Style the page to match the existing dark navy and gold theme.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "Admin panel and login build"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Navigating to /admin shows the login form when not authenticated",
-        "Entering correct credentials calls login() and redirects to the admin dashboard",
-        "Entering wrong credentials shows 'Invalid credentials' error inline",
-        "Page uses the dark navy and gold theme consistent with the rest of the app"
-      ]
-    },
-    {
-      "id": "REQ-20",
-      "text": "Create an Admin Dashboard page at route /admin/dashboard, accessible only when a valid session token exists (redirect to /admin if not authenticated). Render a sidebar with navigation links: Tests, Rankers, Contact Submissions, and a Logout button. Logout calls the backend logout() function, clears the session token, and redirects to /admin.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "Admin panel and login build"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Visiting /admin/dashboard without a session token redirects to /admin",
-        "Sidebar displays links to Tests, Rankers, and Contact Submissions panels",
-        "Clicking Logout calls logout(), clears the token, and redirects to /admin"
-      ]
-    },
-    {
-      "id": "REQ-21",
-      "text": "Implement the Tests management panel in the Admin Dashboard. Display a table of all existing tests showing id, title, and category. Include an 'Add Test' button that opens a modal form with fields: Title, Category (dropdown: UPSC, BPSC, SSC, Railway, State Exams), and a dynamic questions editor (add/remove questions, each with question text, four options, and correct answer selector). Include Edit and Delete actions per row. On save, call addTest() or updateTest(); on delete, call deleteTest(). Refresh the list after each mutation.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "Admin panel and login build"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Tests table renders all existing tests with title and category",
-        "Add Test modal allows entering title, category, and questions with options",
-        "Saving a new test calls addTest() and refreshes the table",
-        "Edit action populates the modal with existing data and calls updateTest() on save",
-        "Delete action calls deleteTest() and removes the row from the table"
-      ]
-    },
-    {
-      "id": "REQ-22",
-      "text": "Implement the Rankers management panel in the Admin Dashboard. Display a ranked table of all rankers showing rank, studentName, examCategory, and score. Include an 'Add Ranker' button that opens a modal form with fields: Student Name, Exam Category (dropdown), and Score. Include a Delete action per row. On save, call addRanker(); on delete, call deleteRanker(). Refresh the leaderboard after each mutation.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "Admin panel and login build"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Rankers table shows all rankers with rank, name, category, and score",
-        "Add Ranker modal captures name, category, and score",
-        "Saving calls addRanker() and refreshes the table with updated ranks",
-        "Delete action calls deleteRanker() and removes the row"
-      ]
-    },
-    {
-      "id": "REQ-23",
-      "text": "Implement the Contact Submissions panel in the Admin Dashboard. Display a table of all contact form submissions showing name, email, message, and timestamp. Call getContactSubmissions() using the active session token to fetch data. Show a loading state while fetching. The table should be read-only (no edit or delete actions required).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "Admin panel and login build"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Contact Submissions table fetches and displays all submissions with name, email, message, and timestamp",
-        "A loading skeleton or spinner is shown while data is being fetched",
-        "Table is read-only with no edit or delete controls"
-      ]
-    },
-    {
-      "id": "REQ-24",
-      "text": "Add client-side routing to the frontend application to support the /admin and /admin/dashboard routes. Use React Router. The existing single-page app layout (App.tsx) should continue to render at the root route /. The /admin route should render the Admin Login page and /admin/dashboard should render the Admin Dashboard. Do not alter the existing public-facing page sections.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-8"
-        ],
-        "quotes": [
-          "Admin panel and login build"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Navigating to / renders the existing full-page public-facing app",
-        "Navigating to /admin renders the Admin Login form",
-        "Navigating to /admin/dashboard renders the Admin Dashboard (or redirects to /admin if unauthenticated)",
-        "Existing public sections are unaffected by the routing change"
+        "Calling login('STSHubsachin', 'success@#2003') returns a valid session token.",
+        "Calling login() with the old credentials returns an error.",
+        "Calling login() with any incorrect username or password still returns an error.",
+        "validateSession() and all admin-guarded functions continue to work correctly with tokens issued after the credential update."
       ]
     }
   ],
   "constraints": [
-    "Do not alter or break any existing public-facing sections (Header, Hero, Exam Categories, Free Tests, Paid Tests, Why Choose Us, Top Rankers, AI Test Generator, Contact, Footer)",
-    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
-    "Admin session management must use the backend actor only — no external auth services",
-    "All backend admin functions must validate the session token before performing mutations"
+    "Do not change any other backend logic, data models, or existing CRUD functions.",
+    "Do not expose the new credentials anywhere in the frontend code or logs."
   ],
   "nonGoals": [
-    "Internet Identity or social login for the admin panel",
-    "Role-based access control beyond a single admin user",
-    "Payment processing integration",
-    "Real-time updates or WebSocket notifications in the admin panel",
-    "Email notifications for contact form submissions"
+    "Adding a dynamic password-change UI or API.",
+    "Hashing or encrypting the stored password (unless already implemented).",
+    "Any frontend changes."
   ],
   "imageRequirements": {
     "required": [],

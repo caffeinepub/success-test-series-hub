@@ -5,10 +5,9 @@ import Text "mo:core/Text";
 import Order "mo:core/Order";
 import Array "mo:core/Array";
 import Runtime "mo:core/Runtime";
-import Iter "mo:core/Iter";
 import Random "mo:core/Random";
+import Iter "mo:core/Iter";
 import Migration "migration";
-import Principal "mo:core/Principal";
 
 (with migration = Migration.run)
 actor {
@@ -53,7 +52,10 @@ actor {
   let tests = Map.empty<Nat, Test>();
   let contactSubmissions = Map.empty<Nat, ContactSubmission>();
   let adminSessions = Map.empty<Text, AdminSession>();
-  let adminPasswordHash = Map.singleton("admin", "password");
+
+  let adminUsername = "STSHubsachin";
+  let adminPassword = "success@#2003";
+
   let rankers = Map.fromIter<Nat, Ranker>([
     (1, { rank = 1; studentName = "Alice"; examCategory = "UPSC"; score = 98 }),
     (2, { rank = 2; studentName = "Bob"; examCategory = "BPSC"; score = 95 }),
@@ -66,28 +68,22 @@ actor {
     (9, { rank = 9; studentName = "Ivy"; examCategory = "Railway"; score = 81 }),
     (10, { rank = 10; studentName = "Jack"; examCategory = "State Exams"; score = 80 }),
   ].values());
+
   var nextContactId = 1;
   var nextRankId = 11;
 
-  // Authentication methods
+  // Authentication Methods
   public shared ({ caller }) func login(username : Text, password : Text) : async Text {
-    switch (adminPasswordHash.get(username)) {
-      case (?storedPassword) {
-        if (storedPassword == password) {
-          let token = await generateToken();
-          let session : AdminSession = {
-            token;
-            expiration = Time.now() + 3600_000_000_000; // 1 hour
-          };
-          adminSessions.add(token, session);
-          return token;
-        } else {
-          Runtime.trap("Invalid username or password");
-        };
+    if (username == adminUsername and password == adminPassword) {
+      let token = await generateToken();
+      let session : AdminSession = {
+        token;
+        expiration = Time.now() + 3600_000_000_000; // 1 hour
       };
-      case (null) {
-        Runtime.trap("Invalid username or password");
-      };
+      adminSessions.add(token, session);
+      return token;
+    } else {
+      Runtime.trap("Invalid username or password");
     };
   };
 
@@ -131,7 +127,7 @@ actor {
     tests.remove(id);
   };
 
-  // Rankers management
+  // Rankers Management
   public shared ({ caller }) func addRanker(token : Text, studentName : Text, examCategory : Text, score : Nat) : async () {
     validateAdminSession(token);
     let newRank = rankers.size() + 1;
@@ -163,7 +159,7 @@ actor {
     contactSubmissions.values().toArray();
   };
 
-  // User-facing functions
+  // User-Facing Functions
   public query ({ caller }) func getTests() : async [Test] {
     let iter = tests.values();
     iter.toArray();
