@@ -2,10 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-homepage-image-slider-poster-carousel-below-the-header-hero-on-the-public-facing-site-display-uploaded-poster-images-as-full-width-slides-with-prev-next-navigation-controls-and-auto-advance-if-no-posters-are-uploaded-yet-show-a-placeholder-banner-backend-must-store-slider-images-as-records-with-an-id-imageurl-text-and-title-optional-text-expose-getsliders-query-and-addslider-token-imageurl-title-deleteslider-token-id-admin-authenticated-update-functions",
-      "featureTitle": "Add a homepage image slider (poster carousel) below the header/hero on the public-facing site. Display uploaded poster images as full-width slides with Prev/Next navigation controls and auto-advance. If no posters are uploaded yet, show a placeholder banner. Backend must store slider images as records with an id, imageUrl (Text), and title (optional Text). Expose getSliders() query and addSlider(token, imageUrl, title) / deleteSlider(token, id) admin-authenticated update functions.",
+      "featureId": "feature-add-react-query-hooks-usestudentlogin-usestudentregister-in-usequeries-ts-that-call-the-new-backend-studentlogin-and-registerstudent-functions",
+      "featureTitle": "Add React Query hooks (useStudentLogin, useStudentRegister) in useQueries.ts that call the new backend studentLogin and registerStudent functions.",
       "files": [
-        "frontend/src/components/ImageSlider.tsx",
         "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
@@ -17,85 +16,14 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-43"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-manage-sliders-panel-to-the-admin-dashboard-sidebar-the-panel-must-display-a-list-of-current-poster-slides-thumbnail-title-delete-button-and-provide-an-add-slider-form-with-a-url-input-and-optional-title-field-on-save-call-addslider-on-delete-call-deleteslider-refresh-the-list-after-each-mutation",
-      "featureTitle": "Add a 'Manage Sliders' panel to the Admin Dashboard sidebar. The panel must display a list of current poster slides (thumbnail, title, delete button) and provide an 'Add Slider' form with a URL input and optional title field. On save, call addSlider(); on delete, call deleteSlider(). Refresh the list after each mutation.",
+      "featureId": "feature-replace-the-existing-otp-based-studentlogin-page-frontend-src-pages-studentlogin-tsx-with-a-mobile-number-password-login-form-the-page-should-have-two-tabs-or-toggle-options-login-mobile-number-password-fields-and-register-mobile-number-password-confirm-password-fields-on-successful-login-navigate-to-the-student-dashboard",
+      "featureTitle": "Replace the existing OTP-based StudentLogin page (frontend/src/pages/StudentLogin.tsx) with a mobile number + password login form. The page should have two tabs or toggle options: 'Login' (mobile number + password fields) and 'Register' (mobile number + password + confirm password fields). On successful login, navigate to the student dashboard.",
       "files": [
-        "frontend/src/components/AdminSidebar.tsx",
-        "frontend/src/components/SliderFormModal.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/AdminDashboard.tsx",
-        "frontend/src/pages/AdminSliders.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-44"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-daily-current-affairs-section-on-the-homepage-that-fetches-and-displays-current-affairs-entries-date-headline-text-from-the-backend-also-add-a-daily-newspaper-section-that-displays-a-list-of-newspaper-entries-date-url-link-from-the-backend-backend-must-store-current-affairs-entries-with-id-date-text-and-content-text-and-newspaper-entries-with-id-date-text-and-link-text-expose-getcurrentaffairs-and-getnewspapers-query-functions-expose-admin-authenticated-addcurrentaffairs-token-date-content-deletecurrentaffairs-token-id-addnewspaper-token-date-link-and-deletenewspaper-token-id-update-functions",
-      "featureTitle": "Add a 'Daily Current Affairs' section on the homepage that fetches and displays current affairs entries (date + headline text) from the backend. Also add a 'Daily Newspaper' section that displays a list of newspaper entries (date + URL/link) from the backend. Backend must store current affairs entries with id, date (Text), and content (Text), and newspaper entries with id, date (Text), and link (Text). Expose getCurrentAffairs() and getNewspapers() query functions. Expose admin-authenticated addCurrentAffairs(token, date, content), deleteCurrentAffairs(token, id), addNewspaper(token, date, link), and deleteNewspaper(token, id) update functions.",
-      "files": [
-        "frontend/src/components/DailyCurrentAffairs.tsx",
-        "frontend/src/components/DailyNewspaper.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-45"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-manage-current-affairs-and-a-manage-daily-newspaper-panel-to-the-admin-dashboard-sidebar-each-panel-must-list-existing-entries-with-date-content-and-a-delete-button-each-panel-must-have-an-add-form-for-current-affairs-date-and-content-text-fields-for-newspaper-date-and-url-link-fields-on-save-call-the-respective-add-function-on-delete-call-the-respective-delete-function-refresh-lists-after-each-mutation",
-      "featureTitle": "Add a 'Manage Current Affairs' and a 'Manage Daily Newspaper' panel to the Admin Dashboard sidebar. Each panel must list existing entries with date/content and a delete button. Each panel must have an 'Add' form. For Current Affairs: date and content text fields. For Newspaper: date and URL/link fields. On save call the respective add function; on delete call the respective delete function. Refresh lists after each mutation.",
-      "files": [
-        "frontend/src/components/AdminSidebar.tsx",
-        "frontend/src/components/CurrentAffairsFormModal.tsx",
-        "frontend/src/components/NewspaperFormModal.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/AdminCurrentAffairs.tsx",
-        "frontend/src/pages/AdminDashboard.tsx",
-        "frontend/src/pages/AdminNewspapers.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-46"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-replace-the-existing-username-password-based-student-login-with-a-mobile-number-otp-login-system-on-the-student-login-page-show-a-mobile-number-input-and-a-send-otp-button-after-the-user-submits-their-mobile-number-call-the-backend-requestotp-mobilenumber-function-which-generates-and-stores-a-6-digit-otp-tied-to-the-mobile-number-simulated-no-real-sms-then-show-an-otp-input-field-and-verify-otp-button-calling-verifyotp-mobilenumber-otp-on-the-backend-validates-the-otp-creates-or-retrieves-the-student-account-by-mobile-number-and-returns-a-session-token-and-student-display-name-on-success-store-the-token-in-localstorage-and-redirect-to-student-dashboard-on-failure-show-an-inline-error-remove-the-old-registerstudent-and-studentlogin-password-based-backend-functions-or-keep-them-deprecated-and-add-requestotp-and-verifyotp-functions",
-      "featureTitle": "Replace the existing username/password-based student login with a Mobile Number + OTP login system. On the /student/login page: show a mobile number input and a 'Send OTP' button. After the user submits their mobile number, call the backend requestOtp(mobileNumber) function which generates and stores a 6-digit OTP tied to the mobile number (simulated — no real SMS). Then show an OTP input field and 'Verify OTP' button. Calling verifyOtp(mobileNumber, otp) on the backend validates the OTP, creates or retrieves the student account by mobile number, and returns a session token and student display name. On success, store the token in localStorage and redirect to /student/dashboard. On failure, show an inline error. Remove the old registerStudent and studentLogin password-based backend functions (or keep them deprecated) and add requestOtp() and verifyOtp() functions.",
-      "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/hooks/useStudentAuth.ts",
         "frontend/src/pages/StudentLogin.tsx"
       ],
       "components": [
@@ -107,90 +35,7 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-47"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-student-profile-section-accessible-from-the-student-dashboard-at-student-dashboard-the-profile-section-must-display-the-student-s-mobile-number-and-a-circular-profile-photo-or-a-placeholder-avatar-if-none-uploaded-include-an-upload-photo-button-that-allows-the-student-to-select-an-image-file-store-the-photo-as-a-base64-encoded-text-in-the-backend-against-their-student-record-expose-getstudentprofile-token-query-and-updatestudentprofilephoto-token-photobase64-update-function-on-the-backend",
-      "featureTitle": "Add a Student Profile section accessible from the Student Dashboard at /student/dashboard. The profile section must display the student's mobile number and a circular profile photo (or a placeholder avatar if none uploaded). Include an 'Upload Photo' button that allows the student to select an image file; store the photo as a base64-encoded Text in the backend against their student record. Expose getStudentProfile(token) query and updateStudentProfilePhoto(token, photoBase64) update function on the backend.",
-      "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/StudentDashboard.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-48"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-students-management-panel-to-the-admin-dashboard-display-a-table-of-all-registered-students-showing-their-mobile-number-and-profile-photo-rendered-as-a-small-circular-thumbnail-if-available-otherwise-a-placeholder-expose-a-backend-admin-query-getstudents-token-that-returns-all-student-records-including-mobile-number-and-photobase64-the-table-should-be-read-only-no-edit-or-delete",
-      "featureTitle": "Add a 'Students' management panel to the Admin Dashboard. Display a table of all registered students showing their mobile number and profile photo (rendered as a small circular thumbnail if available, otherwise a placeholder). Expose a backend admin query getStudents(token) that returns all student records including mobile number and photoBase64. The table should be read-only (no edit or delete).",
-      "files": [
-        "frontend/src/components/AdminSidebar.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/AdminDashboard.tsx",
-        "frontend/src/pages/AdminStudents.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-49"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-negative-marking-support-to-tests-extend-the-backend-test-record-to-include-a-negativemarkvalue-field-float-default-0-0-update-addtest-updatetest-gettests-and-gettestbyid-to-accept-and-return-this-field-in-the-admin-testformmodal-add-a-negative-mark-per-wrong-answer-input-e-g-0-33-0-25-0-display-the-negative-marking-value-on-each-test-card-in-the-free-tests-section-in-the-testtakingmodal-calculate-and-display-the-final-score-applying-negative-marks-for-wrong-answers",
-      "featureTitle": "Add negative marking support to tests. Extend the backend Test record to include a negativeMarkValue field (Float, default 0.0). Update addTest(), updateTest(), getTests(), and getTestById() to accept and return this field. In the Admin TestFormModal, add a 'Negative Mark per Wrong Answer' input (e.g., -0.33, -0.25, 0). Display the negative marking value on each test card in the Free Tests section. In the TestTakingModal, calculate and display the final score applying negative marks for wrong answers.",
-      "files": [
-        "frontend/src/components/FreeTests.tsx",
-        "frontend/src/components/TestFormModal.tsx",
-        "frontend/src/components/TestTakingModal.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-50"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-display-bank-payment-details-in-the-paid-test-series-section-below-the-plan-cards-add-a-clearly-styled-payment-details-box-showing-account-number-444418210022399-ifsc-code-bkid0004444-account-holder-name-sachin-kumar-style-the-box-to-stand-out-e-g-a-gold-bordered-card-and-include-a-note-instructing-students-to-transfer-the-payment-and-contact-the-admin-for-activation",
-      "featureTitle": "Display bank payment details in the Paid Test Series section. Below the plan cards, add a clearly styled 'Payment Details' box showing: Account Number: 444418210022399, IFSC Code: BKID0004444, Account Holder Name: Sachin Kumar. Style the box to stand out (e.g., a gold-bordered card) and include a note instructing students to transfer the payment and contact the admin for activation.",
-      "files": [
-        "frontend/src/components/PaidTestSeries.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-51"
+        "REQ-3"
       ],
       "confidence": "high"
     }

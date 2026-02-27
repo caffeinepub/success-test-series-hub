@@ -1,62 +1,90 @@
 import React, { useState } from 'react';
-import { useRequestOtp, useVerifyOtp } from '../hooks/useQueries';
+import { useStudentLogin, useStudentRegister } from '../hooks/useQueries';
 import { setStudentToken, setStudentName } from '../hooks/useStudentAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Phone, KeyRound, GraduationCap } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Loader2, Phone, Lock, GraduationCap, Eye, EyeOff, UserPlus, LogIn } from 'lucide-react';
 
 interface StudentLoginProps {
   onNavigate: (page: string) => void;
 }
 
 export default function StudentLogin({ onNavigate }: StudentLoginProps) {
-  const [mobileNumber, setMobileNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [error, setError] = useState('');
-  const [otpDisplay, setOtpDisplay] = useState('');
+  // Login state
+  const [loginMobile, setLoginMobile] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
-  const requestOtpMutation = useRequestOtp();
-  const verifyOtpMutation = useVerifyOtp();
+  // Register state
+  const [regMobile, setRegMobile] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [showRegConfirm, setShowRegConfirm] = useState(false);
+  const [regError, setRegError] = useState('');
+  const [regSuccess, setRegSuccess] = useState('');
 
-  const handleSendOtp = async () => {
-    setError('');
-    if (!mobileNumber.trim() || mobileNumber.trim().length < 10) {
-      setError('Please enter a valid 10-digit mobile number.');
-      return;
-    }
+  const loginMutation = useStudentLogin();
+  const registerMutation = useStudentRegister();
+
+  const validateMobile = (mobile: string): string | null => {
+    if (!mobile.trim()) return 'Mobile number is required.';
+    if (!/^\d{10}$/.test(mobile.trim())) return 'Please enter a valid 10-digit mobile number.';
+    return null;
+  };
+
+  const handleLogin = async () => {
+    setLoginError('');
+    const mobileErr = validateMobile(loginMobile);
+    if (mobileErr) { setLoginError(mobileErr); return; }
+    if (!loginPassword.trim()) { setLoginError('Password is required.'); return; }
+
     try {
-      await requestOtpMutation.mutateAsync(mobileNumber.trim());
-      setOtpSent(true);
-      // Since OTP is simulated, show a hint (in production this would be sent via SMS)
-      setOtpDisplay('OTP sent! (Check backend logs for the simulated OTP)');
+      const token = await loginMutation.mutateAsync({
+        mobileNumber: loginMobile.trim(),
+        password: loginPassword,
+      });
+      setStudentToken(token);
+      setStudentName(loginMobile.trim());
+      onNavigate('student-dashboard');
     } catch (err: any) {
-      setError(err?.message || 'Failed to send OTP. Please try again.');
+      const msg: string = err?.message || '';
+      if (msg.includes('Student not found') || msg.includes('Invalid password')) {
+        setLoginError('Invalid mobile number or password. Please try again.');
+      } else {
+        setLoginError(msg || 'Login failed. Please try again.');
+      }
     }
   };
 
-  const handleVerifyOtp = async () => {
-    setError('');
-    if (!otp.trim() || otp.trim().length < 6) {
-      setError('Please enter the 6-digit OTP.');
-      return;
-    }
+  const handleRegister = async () => {
+    setRegError('');
+    setRegSuccess('');
+    const mobileErr = validateMobile(regMobile);
+    if (mobileErr) { setRegError(mobileErr); return; }
+    if (!regPassword.trim()) { setRegError('Password is required.'); return; }
+    if (regPassword.length < 6) { setRegError('Password must be at least 6 characters.'); return; }
+    if (regPassword !== regConfirmPassword) { setRegError('Passwords do not match.'); return; }
+
     try {
-      const [token, studentMobile] = await verifyOtpMutation.mutateAsync({
-        mobileNumber: mobileNumber.trim(),
-        otp: otp.trim(),
+      await registerMutation.mutateAsync({
+        mobileNumber: regMobile.trim(),
+        password: regPassword,
       });
-      setStudentToken(token);
-      setStudentName(studentMobile);
-      onNavigate('student-dashboard');
+      setRegSuccess('Registration successful! You can now login.');
+      setRegMobile('');
+      setRegPassword('');
+      setRegConfirmPassword('');
     } catch (err: any) {
-      const msg = err?.message || '';
-      if (msg.includes('Invalid OTP')) {
-        setError('Invalid OTP. Please check and try again.');
-      } else if (msg.includes('No OTP requested')) {
-        setError('No OTP was requested. Please request a new OTP.');
+      const msg: string = err?.message || '';
+      if (msg.includes('already registered')) {
+        setRegError('This mobile number is already registered. Please login.');
+      } else if (msg.includes('10 digits')) {
+        setRegError('Mobile number must be exactly 10 digits.');
       } else {
-        setError(msg || 'Verification failed. Please try again.');
+        setRegError(msg || 'Registration failed. Please try again.');
       }
     }
   };
@@ -70,128 +98,212 @@ export default function StudentLogin({ onNavigate }: StudentLoginProps) {
             <GraduationCap className="w-8 h-8 text-gold-400" />
           </div>
           <h1 className="text-2xl font-bold text-white font-rajdhani tracking-wide">
-            Student Login
+            Student Portal
           </h1>
           <p className="text-navy-300 mt-1 text-sm">
-            Login with your mobile number using OTP
+            Login or register with your mobile number
           </p>
         </div>
 
         {/* Card */}
         <div className="bg-navy-800 border border-navy-600 rounded-2xl p-8 shadow-navy">
-          {!otpSent ? (
-            /* Step 1: Enter Mobile Number */
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-navy-200 mb-2">
-                  Mobile Number
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
-                  <Input
-                    type="tel"
-                    placeholder="Enter 10-digit mobile number"
-                    value={mobileNumber}
-                    onChange={(e) => setMobileNumber(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendOtp()}
-                    className="pl-10 bg-navy-700 border-navy-500 text-white placeholder:text-navy-400 focus:border-gold-500"
-                    maxLength={10}
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <p className="text-red-400 text-sm bg-red-900/20 border border-red-800/40 rounded-lg px-3 py-2">
-                  {error}
-                </p>
-              )}
-
-              <Button
-                onClick={handleSendOtp}
-                disabled={requestOtpMutation.isPending}
-                className="w-full bg-gold-500 hover:bg-gold-400 text-navy-950 font-semibold"
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="w-full mb-6 bg-navy-700 border border-navy-600">
+              <TabsTrigger
+                value="login"
+                className="flex-1 data-[state=active]:bg-gold-500 data-[state=active]:text-navy-950 text-navy-300"
               >
-                {requestOtpMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Sending OTP...
-                  </>
-                ) : (
-                  'Send OTP'
-                )}
-              </Button>
-            </div>
-          ) : (
-            /* Step 2: Enter OTP */
-            <div className="space-y-5">
-              <div className="bg-navy-700/50 border border-navy-600 rounded-lg px-4 py-3 flex items-center gap-3">
-                <Phone className="w-4 h-4 text-gold-400 shrink-0" />
+                <LogIn className="w-4 h-4 mr-2" />
+                Login
+              </TabsTrigger>
+              <TabsTrigger
+                value="register"
+                className="flex-1 data-[state=active]:bg-gold-500 data-[state=active]:text-navy-950 text-navy-300"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Register
+              </TabsTrigger>
+            </TabsList>
+
+            {/* ── LOGIN TAB ── */}
+            <TabsContent value="login">
+              <div className="space-y-5">
+                {/* Mobile Number */}
                 <div>
-                  <p className="text-xs text-navy-400">OTP sent to</p>
-                  <p className="text-white font-medium">{mobileNumber}</p>
+                  <label className="block text-sm font-medium text-navy-200 mb-2">
+                    Mobile Number
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
+                    <Input
+                      type="tel"
+                      placeholder="Enter 10-digit mobile number"
+                      value={loginMobile}
+                      onChange={(e) => setLoginMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                      className="pl-10 bg-navy-700 border-navy-500 text-white placeholder:text-navy-400 focus:border-gold-500"
+                      maxLength={10}
+                    />
+                  </div>
                 </div>
-                <button
-                  onClick={() => { setOtpSent(false); setOtp(''); setError(''); setOtpDisplay(''); }}
-                  className="ml-auto text-xs text-gold-400 hover:text-gold-300 underline"
-                >
-                  Change
-                </button>
-              </div>
 
-              {otpDisplay && (
-                <p className="text-gold-400 text-xs bg-gold-500/10 border border-gold-500/30 rounded-lg px-3 py-2">
-                  {otpDisplay}
-                </p>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium text-navy-200 mb-2">
-                  Enter OTP
-                </label>
-                <div className="relative">
-                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
-                  <Input
-                    type="text"
-                    placeholder="Enter 6-digit OTP"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    onKeyDown={(e) => e.key === 'Enter' && handleVerifyOtp()}
-                    className="pl-10 bg-navy-700 border-navy-500 text-white placeholder:text-navy-400 focus:border-gold-500 tracking-widest text-center text-lg font-mono"
-                    maxLength={6}
-                  />
+                {/* Password */}
+                <div>
+                  <label className="block text-sm font-medium text-navy-200 mb-2">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
+                    <Input
+                      type={showLoginPassword ? 'text' : 'password'}
+                      placeholder="Enter your password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                      className="pl-10 pr-10 bg-navy-700 border-navy-500 text-white placeholder:text-navy-400 focus:border-gold-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-400 hover:text-gold-400 transition-colors"
+                    >
+                      {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {error && (
-                <p className="text-red-400 text-sm bg-red-900/20 border border-red-800/40 rounded-lg px-3 py-2">
-                  {error}
-                </p>
-              )}
-
-              <Button
-                onClick={handleVerifyOtp}
-                disabled={verifyOtpMutation.isPending}
-                className="w-full bg-gold-500 hover:bg-gold-400 text-navy-950 font-semibold"
-              >
-                {verifyOtpMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  'Verify OTP & Login'
+                {loginError && (
+                  <p className="text-red-400 text-sm bg-red-900/20 border border-red-800/40 rounded-lg px-3 py-2">
+                    {loginError}
+                  </p>
                 )}
-              </Button>
 
-              <button
-                onClick={handleSendOtp}
-                disabled={requestOtpMutation.isPending}
-                className="w-full text-sm text-navy-400 hover:text-gold-400 transition-colors"
-              >
-                {requestOtpMutation.isPending ? 'Resending...' : 'Resend OTP'}
-              </button>
-            </div>
-          )}
+                <Button
+                  onClick={handleLogin}
+                  disabled={loginMutation.isPending}
+                  className="w-full bg-gold-500 hover:bg-gold-400 text-navy-950 font-semibold"
+                >
+                  {loginMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Logging in...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Login
+                    </>
+                  )}
+                </Button>
+              </div>
+            </TabsContent>
+
+            {/* ── REGISTER TAB ── */}
+            <TabsContent value="register">
+              <div className="space-y-5">
+                {/* Mobile Number */}
+                <div>
+                  <label className="block text-sm font-medium text-navy-200 mb-2">
+                    Mobile Number
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
+                    <Input
+                      type="tel"
+                      placeholder="Enter 10-digit mobile number"
+                      value={regMobile}
+                      onChange={(e) => setRegMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      className="pl-10 bg-navy-700 border-navy-500 text-white placeholder:text-navy-400 focus:border-gold-500"
+                      maxLength={10}
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-sm font-medium text-navy-200 mb-2">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
+                    <Input
+                      type={showRegPassword ? 'text' : 'password'}
+                      placeholder="Create a password (min. 6 characters)"
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      className="pl-10 pr-10 bg-navy-700 border-navy-500 text-white placeholder:text-navy-400 focus:border-gold-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegPassword(!showRegPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-400 hover:text-gold-400 transition-colors"
+                    >
+                      {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label className="block text-sm font-medium text-navy-200 mb-2">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
+                    <Input
+                      type={showRegConfirm ? 'text' : 'password'}
+                      placeholder="Re-enter your password"
+                      value={regConfirmPassword}
+                      onChange={(e) => setRegConfirmPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
+                      className="pl-10 pr-10 bg-navy-700 border-navy-500 text-white placeholder:text-navy-400 focus:border-gold-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegConfirm(!showRegConfirm)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-400 hover:text-gold-400 transition-colors"
+                    >
+                      {showRegConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {/* Inline password mismatch error */}
+                  {regConfirmPassword && regPassword !== regConfirmPassword && (
+                    <p className="text-red-400 text-xs mt-1">Passwords do not match.</p>
+                  )}
+                </div>
+
+                {regError && (
+                  <p className="text-red-400 text-sm bg-red-900/20 border border-red-800/40 rounded-lg px-3 py-2">
+                    {regError}
+                  </p>
+                )}
+
+                {regSuccess && (
+                  <p className="text-green-400 text-sm bg-green-900/20 border border-green-800/40 rounded-lg px-3 py-2">
+                    ✓ {regSuccess}
+                  </p>
+                )}
+
+                <Button
+                  onClick={handleRegister}
+                  disabled={registerMutation.isPending}
+                  className="w-full bg-gold-500 hover:bg-gold-400 text-navy-950 font-semibold"
+                >
+                  {registerMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Registering...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Create Account
+                    </>
+                  )}
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
 
           <div className="mt-6 pt-5 border-t border-navy-600 text-center">
             <button

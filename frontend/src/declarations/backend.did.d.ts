@@ -10,17 +10,17 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface ContactSubmission {
-  'name' : string,
-  'email' : string,
-  'message' : string,
-  'timestamp' : bigint,
-}
 export interface CurrentAffairs {
   'id' : bigint,
   'content' : string,
   'date' : string,
 }
+export type ExamCategory = { 'ssc' : null } |
+  { 'railway' : null } |
+  { 'bpsc' : null } |
+  { 'upsc' : null } |
+  { 'banking' : null } |
+  { 'stateExams' : null };
 export interface Newspaper { 'id' : bigint, 'date' : string, 'link' : string }
 export interface Question {
   'question' : string,
@@ -45,6 +45,7 @@ export interface Slider {
 export interface Student {
   'id' : bigint,
   'otp' : [] | [string],
+  'password' : string,
   'mobileNumber' : string,
   'profilePhotoBase64' : [] | [string],
   'registeredAt' : Time,
@@ -53,7 +54,7 @@ export interface Test {
   'id' : bigint,
   'title' : string,
   'negativeMarkValue' : number,
-  'category' : string,
+  'category' : ExamCategory,
   'questions' : Array<Question>,
   'price' : bigint,
 }
@@ -69,7 +70,7 @@ export interface _SERVICE {
   'addRanker' : ActorMethod<[string, string, string, bigint], undefined>,
   'addSlider' : ActorMethod<[string, string, [] | [string]], undefined>,
   'addTest' : ActorMethod<
-    [string, string, string, Array<Question>, bigint, number],
+    [string, string, Array<Question>, bigint, number, ExamCategory],
     undefined
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
@@ -81,7 +82,6 @@ export interface _SERVICE {
   'generateQuestions' : ActorMethod<[string, string, string], Array<Question>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getContactSubmissionsUser' : ActorMethod<[string], Array<ContactSubmission>>,
   'getCurrentAffairs' : ActorMethod<[], Array<CurrentAffairs>>,
   'getNewspapers' : ActorMethod<[], Array<Newspaper>>,
   'getSliders' : ActorMethod<[], Array<Slider>>,
@@ -94,17 +94,17 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'login' : ActorMethod<[string, string], string>,
   'logout' : ActorMethod<[string], undefined>,
-  'requestOtp' : ActorMethod<[string], undefined>,
+  'registerStudent' : ActorMethod<[string, string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'studentLogin' : ActorMethod<[string, string], string>,
   'studentLogout' : ActorMethod<[string], undefined>,
   'submitContact' : ActorMethod<[string, string, string], undefined>,
   'updateStudentProfilePhoto' : ActorMethod<[string, string], undefined>,
   'updateTest' : ActorMethod<
-    [string, bigint, string, string, Array<Question>, bigint, number],
+    [string, bigint, string, Array<Question>, bigint, number, ExamCategory],
     undefined
   >,
   'validateSession' : ActorMethod<[string], boolean>,
-  'verifyOtp' : ActorMethod<[string, string], [string, string]>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

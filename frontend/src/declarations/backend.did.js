@@ -17,6 +17,14 @@ export const Question = IDL.Record({
   'questionHi' : IDL.Opt(IDL.Text),
   'options' : IDL.Vec(IDL.Text),
 });
+export const ExamCategory = IDL.Variant({
+  'ssc' : IDL.Null,
+  'railway' : IDL.Null,
+  'bpsc' : IDL.Null,
+  'upsc' : IDL.Null,
+  'banking' : IDL.Null,
+  'stateExams' : IDL.Null,
+});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -25,12 +33,6 @@ export const UserRole = IDL.Variant({
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Opt(IDL.Text),
-});
-export const ContactSubmission = IDL.Record({
-  'name' : IDL.Text,
-  'email' : IDL.Text,
-  'message' : IDL.Text,
-  'timestamp' : IDL.Int,
 });
 export const CurrentAffairs = IDL.Record({
   'id' : IDL.Nat,
@@ -51,6 +53,7 @@ export const Time = IDL.Int;
 export const Student = IDL.Record({
   'id' : IDL.Nat,
   'otp' : IDL.Opt(IDL.Text),
+  'password' : IDL.Text,
   'mobileNumber' : IDL.Text,
   'profilePhotoBase64' : IDL.Opt(IDL.Text),
   'registeredAt' : Time,
@@ -59,7 +62,7 @@ export const Test = IDL.Record({
   'id' : IDL.Nat,
   'title' : IDL.Text,
   'negativeMarkValue' : IDL.Float64,
-  'category' : IDL.Text,
+  'category' : ExamCategory,
   'questions' : IDL.Vec(Question),
   'price' : IDL.Nat,
 });
@@ -77,7 +80,14 @@ export const idlService = IDL.Service({
   'addRanker' : IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Nat], [], []),
   'addSlider' : IDL.Func([IDL.Text, IDL.Text, IDL.Opt(IDL.Text)], [], []),
   'addTest' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Vec(Question), IDL.Nat, IDL.Float64],
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Vec(Question),
+        IDL.Nat,
+        IDL.Float64,
+        ExamCategory,
+      ],
       [],
       [],
     ),
@@ -94,11 +104,6 @@ export const idlService = IDL.Service({
     ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-  'getContactSubmissionsUser' : IDL.Func(
-      [IDL.Text],
-      [IDL.Vec(ContactSubmission)],
-      ['query'],
-    ),
   'getCurrentAffairs' : IDL.Func([], [IDL.Vec(CurrentAffairs)], ['query']),
   'getNewspapers' : IDL.Func([], [IDL.Vec(Newspaper)], ['query']),
   'getSliders' : IDL.Func([], [IDL.Vec(Slider)], ['query']),
@@ -115,8 +120,9 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'login' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
   'logout' : IDL.Func([IDL.Text], [], []),
-  'requestOtp' : IDL.Func([IDL.Text], [], []),
+  'registerStudent' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'studentLogin' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
   'studentLogout' : IDL.Func([IDL.Text], [], []),
   'submitContact' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
   'updateStudentProfilePhoto' : IDL.Func([IDL.Text, IDL.Text], [], []),
@@ -125,16 +131,15 @@ export const idlService = IDL.Service({
         IDL.Text,
         IDL.Nat,
         IDL.Text,
-        IDL.Text,
         IDL.Vec(Question),
         IDL.Nat,
         IDL.Float64,
+        ExamCategory,
       ],
       [],
       [],
     ),
   'validateSession' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
-  'verifyOtp' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text, IDL.Text], []),
 });
 
 export const idlInitArgs = [];
@@ -149,6 +154,14 @@ export const idlFactory = ({ IDL }) => {
     'questionHi' : IDL.Opt(IDL.Text),
     'options' : IDL.Vec(IDL.Text),
   });
+  const ExamCategory = IDL.Variant({
+    'ssc' : IDL.Null,
+    'railway' : IDL.Null,
+    'bpsc' : IDL.Null,
+    'upsc' : IDL.Null,
+    'banking' : IDL.Null,
+    'stateExams' : IDL.Null,
+  });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -157,12 +170,6 @@ export const idlFactory = ({ IDL }) => {
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
     'email' : IDL.Opt(IDL.Text),
-  });
-  const ContactSubmission = IDL.Record({
-    'name' : IDL.Text,
-    'email' : IDL.Text,
-    'message' : IDL.Text,
-    'timestamp' : IDL.Int,
   });
   const CurrentAffairs = IDL.Record({
     'id' : IDL.Nat,
@@ -183,6 +190,7 @@ export const idlFactory = ({ IDL }) => {
   const Student = IDL.Record({
     'id' : IDL.Nat,
     'otp' : IDL.Opt(IDL.Text),
+    'password' : IDL.Text,
     'mobileNumber' : IDL.Text,
     'profilePhotoBase64' : IDL.Opt(IDL.Text),
     'registeredAt' : Time,
@@ -191,7 +199,7 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Nat,
     'title' : IDL.Text,
     'negativeMarkValue' : IDL.Float64,
-    'category' : IDL.Text,
+    'category' : ExamCategory,
     'questions' : IDL.Vec(Question),
     'price' : IDL.Nat,
   });
@@ -209,7 +217,14 @@ export const idlFactory = ({ IDL }) => {
     'addRanker' : IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Nat], [], []),
     'addSlider' : IDL.Func([IDL.Text, IDL.Text, IDL.Opt(IDL.Text)], [], []),
     'addTest' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Vec(Question), IDL.Nat, IDL.Float64],
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Vec(Question),
+          IDL.Nat,
+          IDL.Float64,
+          ExamCategory,
+        ],
         [],
         [],
       ),
@@ -226,11 +241,6 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-    'getContactSubmissionsUser' : IDL.Func(
-        [IDL.Text],
-        [IDL.Vec(ContactSubmission)],
-        ['query'],
-      ),
     'getCurrentAffairs' : IDL.Func([], [IDL.Vec(CurrentAffairs)], ['query']),
     'getNewspapers' : IDL.Func([], [IDL.Vec(Newspaper)], ['query']),
     'getSliders' : IDL.Func([], [IDL.Vec(Slider)], ['query']),
@@ -247,8 +257,9 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'login' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
     'logout' : IDL.Func([IDL.Text], [], []),
-    'requestOtp' : IDL.Func([IDL.Text], [], []),
+    'registerStudent' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'studentLogin' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
     'studentLogout' : IDL.Func([IDL.Text], [], []),
     'submitContact' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
     'updateStudentProfilePhoto' : IDL.Func([IDL.Text, IDL.Text], [], []),
@@ -257,16 +268,15 @@ export const idlFactory = ({ IDL }) => {
           IDL.Text,
           IDL.Nat,
           IDL.Text,
-          IDL.Text,
           IDL.Vec(Question),
           IDL.Nat,
           IDL.Float64,
+          ExamCategory,
         ],
         [],
         [],
       ),
     'validateSession' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
-    'verifyOtp' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text, IDL.Text], []),
   });
 };
 

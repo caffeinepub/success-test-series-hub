@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, ChevronDown, ChevronUp, IndianRupee } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp, IndianRupee, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,12 +21,14 @@ import {
 import { useAddTest, useUpdateTest } from '@/hooks/useQueries';
 import { getSessionToken } from '@/hooks/useAuth';
 import type { Test, Question } from '@/backend';
+import { ExamCategory } from '@/backend';
+import { EXAM_CATEGORY_OPTIONS } from '@/utils/examCategories';
 import { toast } from 'sonner';
 
 interface QuestionForm {
   question: string;
   options: [string, string, string, string];
-  answer: string;
+  answerIndex: number; // 0-3, index into options array
   explanation: string;
   questionHi: string;
   optionsHi: [string, string, string, string];
@@ -40,13 +42,11 @@ interface TestFormModalProps {
   editingTest: Test | null;
 }
 
-const CATEGORIES = ['UPSC', 'BPSC', 'SSC', 'Railway', 'Banking', 'State Exams', 'Current Affairs'];
-
 function makeEmptyQuestion(): QuestionForm {
   return {
     question: '',
     options: ['', '', '', ''],
-    answer: '',
+    answerIndex: -1,
     explanation: '',
     questionHi: '',
     optionsHi: ['', '', '', ''],
@@ -55,12 +55,20 @@ function makeEmptyQuestion(): QuestionForm {
   };
 }
 
+/** Given a Question from backend, find which option index matches the answer string */
+function findAnswerIndex(options: string[], answer: string): number {
+  const idx = options.findIndex((o) => o === answer);
+  return idx >= 0 ? idx : -1;
+}
+
 export default function TestFormModal({ open, onClose, editingTest }: TestFormModalProps) {
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('');
+  const [examCategory, setExamCategory] = useState<ExamCategory>(ExamCategory.upsc);
   const [price, setPrice] = useState<number>(0);
   const [negativeMarkValue, setNegativeMarkValue] = useState<number>(0);
   const [questions, setQuestions] = useState<QuestionForm[]>([makeEmptyQuestion()]);
+  const [errors, setErrors] = useState<string[]>([]);
+
   const { mutateAsync: addTest, isPending: isAdding } = useAddTest();
   const { mutateAsync: updateTest, isPending: isUpdating } = useUpdateTest();
 
@@ -68,36 +76,42 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
 
   useEffect(() => {
     if (open) {
+      setErrors([]);
       if (editingTest) {
         setTitle(editingTest.title);
-        setCategory(editingTest.category);
+        setExamCategory(editingTest.category as ExamCategory ?? ExamCategory.upsc);
         setPrice(Number(editingTest.price));
         setNegativeMarkValue(editingTest.negativeMarkValue ?? 0);
         setQuestions(
-          editingTest.questions.map((q) => ({
-            question: q.question,
-            options: [
-              q.options[0] ?? '',
-              q.options[1] ?? '',
-              q.options[2] ?? '',
-              q.options[3] ?? '',
-            ] as [string, string, string, string],
-            answer: q.answer,
-            explanation: q.explanation ?? '',
-            questionHi: q.questionHi ?? '',
-            optionsHi: [
-              q.optionsHi?.[0] ?? '',
-              q.optionsHi?.[1] ?? '',
-              q.optionsHi?.[2] ?? '',
-              q.optionsHi?.[3] ?? '',
-            ] as [string, string, string, string],
-            explanationHi: q.explanationHi ?? '',
-            expanded: false,
-          }))
+          editingTest.questions.length > 0
+            ? editingTest.questions.map((q) => {
+                const opts: [string, string, string, string] = [
+                  q.options[0] ?? '',
+                  q.options[1] ?? '',
+                  q.options[2] ?? '',
+                  q.options[3] ?? '',
+                ];
+                return {
+                  question: q.question,
+                  options: opts,
+                  answerIndex: findAnswerIndex(opts, q.answer),
+                  explanation: q.explanation ?? '',
+                  questionHi: q.questionHi ?? '',
+                  optionsHi: [
+                    q.optionsHi?.[0] ?? '',
+                    q.optionsHi?.[1] ?? '',
+                    q.optionsHi?.[2] ?? '',
+                    q.optionsHi?.[3] ?? '',
+                  ] as [string, string, string, string],
+                  explanationHi: q.explanationHi ?? '',
+                  expanded: false,
+                };
+              })
+            : [makeEmptyQuestion()]
         );
       } else {
         setTitle('');
-        setCategory('');
+        setExamCategory(ExamCategory.upsc);
         setPrice(0);
         setNegativeMarkValue(0);
         setQuestions([makeEmptyQuestion()]);
@@ -134,7 +148,10 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
   };
 
   const addQuestion = () => {
-    setQuestions((prev) => [...prev, makeEmptyQuestion()]);
+    setQuestions((prev) => [
+      ...prev.map((q) => ({ ...q, expanded: false })),
+      makeEmptyQuestion(),
+    ]);
   };
 
   const removeQuestion = (index: number) => {
@@ -157,6 +174,31 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
     setNegativeMarkValue(isNaN(val) ? 0 : val);
   };
 
+  const validate = (): boolean => {
+    const errs: string[] = [];
+
+    if (!title.trim()) errs.push('Test title is required.');
+    if (!examCategory) errs.push('Exam Category is required.');
+
+    questions.forEach((q, qi) => {
+      if (!q.question.trim()) {
+        errs.push(`Question ${qi + 1}: Question text (English) is required.`);
+      }
+      const filledOptions = q.options.filter((o) => o.trim());
+      if (filledOptions.length < 2) {
+        errs.push(`Question ${qi + 1}: At least 2 options are required.`);
+      }
+      if (q.answerIndex < 0) {
+        errs.push(`Question ${qi + 1}: Please select the correct answer.`);
+      } else if (!q.options[q.answerIndex]?.trim()) {
+        errs.push(`Question ${qi + 1}: The selected correct answer option is empty.`);
+      }
+    });
+
+    setErrors(errs);
+    return errs.length === 0;
+  };
+
   const handleSave = async () => {
     const token = getSessionToken();
     if (!token) {
@@ -164,23 +206,19 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
       return;
     }
 
-    if (!title.trim()) {
-      toast.error('Test title is required.');
-      return;
-    }
-    if (!category) {
-      toast.error('Category is required.');
+    if (!validate()) {
+      setQuestions((prev) => prev.map((q) => ({ ...q, expanded: true })));
       return;
     }
 
     const questionPayload: Question[] = questions.map((q) => ({
-      question: q.question,
+      question: q.question.trim(),
       options: q.options,
-      answer: q.answer,
-      explanation: q.explanation || undefined,
-      questionHi: q.questionHi || undefined,
+      answer: q.options[q.answerIndex] ?? '',
+      explanation: q.explanation.trim() || undefined,
+      questionHi: q.questionHi.trim() || undefined,
       optionsHi: q.optionsHi.some((o) => o.trim()) ? q.optionsHi : undefined,
-      explanationHi: q.explanationHi || undefined,
+      explanationHi: q.explanationHi.trim() || undefined,
     }));
 
     try {
@@ -188,27 +226,28 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
         await updateTest({
           token,
           id: editingTest.id,
-          title,
-          category,
+          title: title.trim(),
+          category: examCategory,
           questions: questionPayload,
           price: BigInt(price),
           negativeMarkValue,
         });
-        toast.success('Test updated successfully');
+        toast.success(`Test updated with ${questionPayload.length} question(s)!`);
       } else {
         await addTest({
           token,
-          title,
-          category,
+          title: title.trim(),
+          category: examCategory,
           questions: questionPayload,
           price: BigInt(price),
           negativeMarkValue,
         });
-        toast.success('Test added successfully');
+        toast.success(`Test added with ${questionPayload.length} question(s)!`);
       }
       onClose();
-    } catch {
-      toast.error('Failed to save test. Please try again.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      toast.error(`Failed to save test: ${msg}`);
     }
   };
 
@@ -222,11 +261,23 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
         </DialogHeader>
 
         <div className="space-y-6 py-2">
-          {/* Title + Category + Price + Negative Mark row */}
+          {/* Validation Errors */}
+          {errors.length > 0 && (
+            <div className="bg-destructive/10 border border-destructive/40 rounded-lg p-3 space-y-1">
+              {errors.map((err, i) => (
+                <p key={i} className="text-destructive text-sm flex items-start gap-1.5">
+                  <span className="mt-0.5 shrink-0">⚠</span>
+                  {err}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {/* Title + Exam Category + Price + Negative Mark */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Title */}
             <div>
-              <Label className="text-foreground font-semibold mb-1.5 block">Test Title</Label>
+              <Label className="text-foreground font-semibold mb-1.5 block">Test Title *</Label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -235,21 +286,31 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
               />
             </div>
 
-            {/* Category */}
+            {/* Exam Category */}
             <div>
-              <Label className="text-foreground font-semibold mb-1.5 block">Category</Label>
-              <Select value={category} onValueChange={setCategory}>
+              <Label className="text-foreground font-semibold mb-1.5 block">Exam Category *</Label>
+              <Select
+                value={examCategory}
+                onValueChange={(val) => setExamCategory(val as ExamCategory)}
+              >
                 <SelectTrigger className="bg-muted border-border text-foreground focus:border-gold">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="Select exam category" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat} className="text-foreground hover:bg-accent">
-                      {cat}
+                  {EXAM_CATEGORY_OPTIONS.map((opt) => (
+                    <SelectItem
+                      key={opt.value}
+                      value={opt.value}
+                      className="text-foreground hover:bg-accent"
+                    >
+                      {opt.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Which exam is this test for?
+              </p>
             </div>
 
             {/* Price */}
@@ -280,17 +341,19 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
                 step={0.01}
                 value={negativeMarkValue}
                 onChange={handleNegativeMarkChange}
-                placeholder="e.g. -0.33 or 0"
+                placeholder="e.g. 0.33 or 0"
                 className="bg-muted border-border text-foreground placeholder:text-muted-foreground focus:border-gold"
               />
-              <p className="text-xs text-muted-foreground mt-1">Use negative values (e.g. -0.33) or 0 for no penalty</p>
+              <p className="text-xs text-muted-foreground mt-1">Use 0 for no penalty</p>
             </div>
           </div>
 
           {/* Questions */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <Label className="text-foreground font-semibold">Questions ({questions.length})</Label>
+              <Label className="text-foreground font-semibold">
+                Questions ({questions.length})
+              </Label>
               <Button
                 type="button"
                 size="sm"
@@ -312,10 +375,20 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
                       onClick={() => toggleExpand(qi)}
                       className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors flex-1 text-left"
                     >
-                      {q.expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      {q.expanded ? (
+                        <ChevronUp className="h-4 w-4 shrink-0" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 shrink-0" />
+                      )}
                       <span className="font-semibold text-sm">
-                        Q{qi + 1}: {q.question ? q.question.slice(0, 50) + (q.question.length > 50 ? '...' : '') : 'New Question'}
+                        Q{qi + 1}:{' '}
+                        {q.question
+                          ? q.question.slice(0, 50) + (q.question.length > 50 ? '…' : '')
+                          : 'New Question'}
                       </span>
+                      {q.answerIndex >= 0 && q.options[q.answerIndex]?.trim() && (
+                        <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                      )}
                     </button>
                     {questions.length > 1 && (
                       <button
@@ -333,10 +406,14 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
                       {/* English Section */}
                       <div className="space-y-3">
                         <div className="text-xs font-bold text-gold uppercase tracking-widest border-b border-border pb-1">
-                          English
+                          English *
                         </div>
+
+                        {/* Question Text */}
                         <div>
-                          <Label className="text-muted-foreground text-xs mb-1 block">Question (English)</Label>
+                          <Label className="text-muted-foreground text-xs mb-1 block">
+                            Question Text (English) *
+                          </Label>
                           <Textarea
                             value={q.question}
                             onChange={(e) => updateQuestion(qi, 'question', e.target.value)}
@@ -345,34 +422,67 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
                             rows={2}
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          {q.options.map((opt, oi) => (
-                            <div key={oi}>
-                              <Label className="text-muted-foreground text-xs mb-1 block">Option {oi + 1}</Label>
-                              <Input
-                                value={opt}
-                                onChange={(e) => updateOption(qi, oi, e.target.value)}
-                                placeholder={`Option ${oi + 1}`}
-                                className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-gold text-sm"
-                              />
-                            </div>
-                          ))}
-                        </div>
+
+                        {/* Options */}
                         <div>
-                          <Label className="text-muted-foreground text-xs mb-1 block">Correct Answer</Label>
-                          <Input
-                            value={q.answer}
-                            onChange={(e) => updateQuestion(qi, 'answer', e.target.value)}
-                            placeholder="Must match one of the options exactly"
-                            className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-gold text-sm"
-                          />
+                          <Label className="text-muted-foreground text-xs mb-2 block">
+                            Options * — Click the circle to mark the correct answer
+                          </Label>
+                          <div className="space-y-2">
+                            {q.options.map((opt, oi) => (
+                              <div key={oi} className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => updateQuestion(qi, 'answerIndex', oi)}
+                                  title="Mark as correct answer"
+                                  className={`shrink-0 h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                    q.answerIndex === oi
+                                      ? 'border-success bg-success/20 text-success'
+                                      : 'border-border text-transparent hover:border-success/60'
+                                  }`}
+                                >
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                </button>
+                                <span className="text-xs text-muted-foreground w-16 shrink-0">
+                                  Option {oi + 1}
+                                  {q.answerIndex === oi && (
+                                    <span className="ml-1 text-success font-bold">✓</span>
+                                  )}
+                                </span>
+                                <Input
+                                  value={opt}
+                                  onChange={(e) => updateOption(qi, oi, e.target.value)}
+                                  placeholder={`Option ${oi + 1}`}
+                                  className={`bg-background border-border text-foreground placeholder:text-muted-foreground text-sm flex-1 ${
+                                    q.answerIndex === oi
+                                      ? 'border-success focus:border-success'
+                                      : 'focus:border-gold'
+                                  }`}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          {q.answerIndex < 0 && (
+                            <p className="text-xs text-amber-400 mt-1.5">
+                              ⚠ Click the circle next to an option to mark it as the correct answer
+                            </p>
+                          )}
+                          {q.answerIndex >= 0 && (
+                            <p className="text-xs text-success mt-1.5">
+                              ✓ Correct answer: Option {q.answerIndex + 1}
+                            </p>
+                          )}
                         </div>
+
+                        {/* Explanation */}
                         <div>
-                          <Label className="text-muted-foreground text-xs mb-1 block">Explanation (optional)</Label>
+                          <Label className="text-muted-foreground text-xs mb-1 block">
+                            Explanation (optional)
+                          </Label>
                           <Textarea
                             value={q.explanation}
                             onChange={(e) => updateQuestion(qi, 'explanation', e.target.value)}
-                            placeholder="Explanation for the correct answer"
+                            placeholder="Explain the correct answer (optional)"
                             className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-gold resize-none text-sm"
                             rows={2}
                           />
@@ -382,10 +492,14 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
                       {/* Hindi Section */}
                       <div className="space-y-3">
                         <div className="text-xs font-bold text-sky uppercase tracking-widest border-b border-border pb-1">
-                          Hindi (हिंदी)
+                          हिंदी (Hindi) — Optional
                         </div>
+
+                        {/* Question Text Hindi */}
                         <div>
-                          <Label className="text-muted-foreground text-xs mb-1 block">Question (Hindi)</Label>
+                          <Label className="text-muted-foreground text-xs mb-1 block">
+                            Question Text (Hindi)
+                          </Label>
                           <Textarea
                             value={q.questionHi}
                             onChange={(e) => updateQuestion(qi, 'questionHi', e.target.value)}
@@ -394,25 +508,38 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
                             rows={2}
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          {q.optionsHi.map((opt, oi) => (
-                            <div key={oi}>
-                              <Label className="text-muted-foreground text-xs mb-1 block">Option {oi + 1} (Hindi)</Label>
-                              <Input
-                                value={opt}
-                                onChange={(e) => updateOptionHi(qi, oi, e.target.value)}
-                                placeholder={`विकल्प ${oi + 1}`}
-                                className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-sky text-sm"
-                              />
-                            </div>
-                          ))}
-                        </div>
+
+                        {/* Options Hindi */}
                         <div>
-                          <Label className="text-muted-foreground text-xs mb-1 block">Explanation (Hindi, optional)</Label>
+                          <Label className="text-muted-foreground text-xs mb-2 block">
+                            Options (Hindi)
+                          </Label>
+                          <div className="space-y-2">
+                            {q.optionsHi.map((opt, oi) => (
+                              <div key={oi} className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground w-16 shrink-0">
+                                  विकल्प {oi + 1}
+                                </span>
+                                <Input
+                                  value={opt}
+                                  onChange={(e) => updateOptionHi(qi, oi, e.target.value)}
+                                  placeholder={`विकल्प ${oi + 1}`}
+                                  className="bg-background border-border text-foreground placeholder:text-muted-foreground text-sm flex-1 focus:border-sky"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Explanation Hindi */}
+                        <div>
+                          <Label className="text-muted-foreground text-xs mb-1 block">
+                            Explanation (Hindi)
+                          </Label>
                           <Textarea
                             value={q.explanationHi}
                             onChange={(e) => updateQuestion(qi, 'explanationHi', e.target.value)}
-                            placeholder="हिंदी में स्पष्टीकरण"
+                            placeholder="सही उत्तर की व्याख्या करें (वैकल्पिक)"
                             className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-sky resize-none text-sm"
                             rows={2}
                           />
@@ -426,8 +553,9 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
           </div>
         </div>
 
-        <DialogFooter className="gap-2 pt-2">
+        <DialogFooter className="pt-4 border-t border-border gap-2">
           <Button
+            type="button"
             variant="ghost"
             onClick={onClose}
             disabled={isPending}
@@ -436,16 +564,24 @@ export default function TestFormModal({ open, onClose, editingTest }: TestFormMo
             Cancel
           </Button>
           <Button
+            type="button"
             onClick={handleSave}
             disabled={isPending}
-            className="bg-gold hover:bg-gold-light text-navy-deep font-heading font-bold"
+            className="bg-gold hover:bg-gold-light text-navy-deep font-semibold min-w-[100px]"
           >
             {isPending ? (
               <span className="flex items-center gap-2">
-                <span className="h-4 w-4 border-2 border-navy-deep/30 border-t-navy-deep rounded-full animate-spin" />
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
                 Saving…
               </span>
-            ) : editingTest ? 'Update Test' : 'Add Test'}
+            ) : editingTest ? (
+              'Update Test'
+            ) : (
+              'Add Test'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

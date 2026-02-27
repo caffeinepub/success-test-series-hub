@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Test, Question, Ranker, ContactSubmission, Student, Slider, CurrentAffairs, Newspaper } from '../backend';
+import type { Test, Question, Ranker, Student, Slider, CurrentAffairs, Newspaper } from '../backend';
+import { ExamCategory } from '../backend';
 
 // ── Public Queries ──────────────────────────────────────────────────────────
 
@@ -91,12 +92,108 @@ export function useAdminLogout() {
 }
 
 export function useValidateSession() {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useMutation({
     mutationFn: async (token: string) => {
       if (!actor) throw new Error('Actor not available');
       return actor.validateSession(token);
     },
+  });
+}
+
+// ── Student Auth ────────────────────────────────────────────────────────────
+
+export function useStudentLogin() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async ({
+      mobileNumber,
+      password,
+    }: {
+      mobileNumber: string;
+      password: string;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.studentLogin(mobileNumber, password);
+    },
+  });
+}
+
+export function useStudentRegister() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async ({
+      mobileNumber,
+      password,
+    }: {
+      mobileNumber: string;
+      password: string;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.registerStudent(mobileNumber, password);
+    },
+  });
+}
+
+export function useStudentLogout() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (token: string) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.studentLogout(token);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studentProfile'] });
+    },
+  });
+}
+
+// ── Student Profile ─────────────────────────────────────────────────────────
+
+export function useGetStudentProfile(token: string) {
+  const { actor, isFetching } = useActor();
+  return useQuery<Student | null>({
+    queryKey: ['studentProfile', token],
+    queryFn: async () => {
+      if (!actor || !token) return null;
+      return actor.getStudentProfile(token);
+    },
+    enabled: !!actor && !isFetching && !!token,
+  });
+}
+
+export function useUpdateStudentProfilePhoto() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      token,
+      photoBase64,
+    }: {
+      token: string;
+      photoBase64: string;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateStudentProfilePhoto(token, photoBase64);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['studentProfile', variables.token] });
+    },
+  });
+}
+
+// ── Admin Student Queries ───────────────────────────────────────────────────
+
+export function useGetStudents(token: string) {
+  const { actor, isFetching } = useActor();
+  return useQuery<Student[]>({
+    queryKey: ['students', token],
+    queryFn: async () => {
+      if (!actor || !token) return [];
+      return actor.getStudents(token);
+    },
+    enabled: !!actor && !isFetching && !!token,
   });
 }
 
@@ -116,13 +213,13 @@ export function useAddTest() {
     }: {
       token: string;
       title: string;
-      category: string;
+      category: ExamCategory;
       questions: Question[];
       price: bigint;
       negativeMarkValue: number;
     }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addTest(token, title, category, questions, price, negativeMarkValue);
+      return actor.addTest(token, title, questions, price, negativeMarkValue, category);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tests'] });
@@ -146,13 +243,13 @@ export function useUpdateTest() {
       token: string;
       id: bigint;
       title: string;
-      category: string;
+      category: ExamCategory;
       questions: Question[];
       price: bigint;
       negativeMarkValue: number;
     }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateTest(token, id, title, category, questions, price, negativeMarkValue);
+      return actor.updateTest(token, id, title, questions, price, negativeMarkValue, category);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tests'] });
@@ -234,15 +331,13 @@ export function useSubmitContact() {
   });
 }
 
-export function useGetContactSubmissions(token: string) {
-  const { actor, isFetching } = useActor();
-  return useQuery<ContactSubmission[]>({
-    queryKey: ['contactSubmissions', token],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getContactSubmissionsUser(token);
-    },
-    enabled: !!actor && !isFetching && !!token,
+// Note: getContactSubmissions is not available in the backend interface.
+// Keeping a stub that returns empty array to avoid breaking imports.
+export function useGetContactSubmissions(_token: string) {
+  return useQuery({
+    queryKey: ['contactSubmissions'],
+    queryFn: async () => [] as never[],
+    enabled: false,
   });
 }
 
@@ -376,127 +471,6 @@ export function useDeleteNewspaper() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['newspapers'] });
-    },
-  });
-}
-
-// ── Student OTP Auth ────────────────────────────────────────────────────────
-
-export function useRequestOtp() {
-  const { actor } = useActor();
-  return useMutation({
-    mutationFn: async (mobileNumber: string) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.requestOtp(mobileNumber);
-    },
-  });
-}
-
-export function useVerifyOtp() {
-  const { actor } = useActor();
-  return useMutation({
-    mutationFn: async ({
-      mobileNumber,
-      otp,
-    }: {
-      mobileNumber: string;
-      otp: string;
-    }): Promise<[string, string]> => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.verifyOtp(mobileNumber, otp);
-    },
-  });
-}
-
-export function useStudentLogout() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (token: string) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.studentLogout(token);
-    },
-    onSuccess: () => {
-      queryClient.removeQueries({ queryKey: ['studentProfile'] });
-    },
-  });
-}
-
-// ── Student Profile ─────────────────────────────────────────────────────────
-
-export function useGetStudentProfile(token: string) {
-  const { actor, isFetching } = useActor();
-  return useQuery<Student | null>({
-    queryKey: ['studentProfile', token],
-    queryFn: async () => {
-      if (!actor) return null;
-      return actor.getStudentProfile(token);
-    },
-    enabled: !!actor && !isFetching && !!token,
-  });
-}
-
-export function useUpdateStudentProfilePhoto() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({
-      token,
-      photoBase64,
-    }: {
-      token: string;
-      photoBase64: string;
-    }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateStudentProfilePhoto(token, photoBase64);
-    },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['studentProfile', variables.token] });
-    },
-  });
-}
-
-// ── Admin: Get All Students ─────────────────────────────────────────────────
-
-export function useGetStudents(token: string) {
-  const { actor, isFetching } = useActor();
-  return useQuery<Student[]>({
-    queryKey: ['students', token],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getStudents(token);
-    },
-    enabled: !!actor && !isFetching && !!token,
-  });
-}
-
-// ── Legacy student auth hooks (kept for compatibility) ──────────────────────
-
-export function useStudentRegister() {
-  const { actor } = useActor();
-  return useMutation({
-    mutationFn: async (_params: { username: string; password: string; email: string }) => {
-      throw new Error('Registration via username/password is no longer supported. Use OTP login.');
-    },
-  });
-}
-
-export function useStudentLogin() {
-  const { actor } = useActor();
-  return useMutation({
-    mutationFn: async (_params: { username: string; password: string }) => {
-      throw new Error('Password login is no longer supported. Use OTP login.');
-    },
-  });
-}
-
-export function useValidateStudentSession() {
-  const { actor } = useActor();
-  return useMutation({
-    mutationFn: async (token: string): Promise<boolean> => {
-      if (!actor) return false;
-      const profile = await actor.getStudentProfile(token);
-      return profile !== null;
     },
   });
 }

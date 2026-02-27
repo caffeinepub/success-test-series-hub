@@ -1,19 +1,23 @@
-import Map "mo:core/Map";
-import Time "mo:core/Time";
 import Text "mo:core/Text";
-import Nat "mo:core/Nat";
-import Array "mo:core/Array";
-import Order "mo:core/Order";
-import Runtime "mo:core/Runtime";
-import Random "mo:core/Random";
 import Iter "mo:core/Iter";
+import List "mo:core/List";
+import Map "mo:core/Map";
+import Nat "mo:core/Nat";
+import Int "mo:core/Int";
+import Order "mo:core/Order";
+import Time "mo:core/Time";
+import Array "mo:core/Array";
+import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Migration "migration";
+import Random "mo:core/Random";
 
+// Add migration module for smooth upgrades of backend code with persistent state
 (with migration = Migration.run)
 actor {
+  // Types used
   type Question = {
     question : Text;
     options : [Text];
@@ -24,13 +28,23 @@ actor {
     explanationHi : ?Text;
   };
 
+  // Added enum for ExamCategory
+  type ExamCategory = {
+    #upsc;
+    #ssc;
+    #railway;
+    #banking;
+    #bpsc;
+    #stateExams;
+  };
+
   type Test = {
     id : Nat;
     title : Text;
-    category : Text;
     questions : [Question];
     price : Nat;
     negativeMarkValue : Float;
+    category : ExamCategory;
   };
 
   type ContactSubmission = {
@@ -56,6 +70,7 @@ actor {
   type Student = {
     id : Nat;
     mobileNumber : Text;
+    password : Text;
     otp : ?Text;
     profilePhotoBase64 : ?Text;
     registeredAt : Time.Time;
@@ -116,6 +131,7 @@ actor {
   let adminUsername = "STSHubsachin";
   let adminPassword = "success@#2003";
 
+  // Session record types and maps
   type StudentSession = {
     token : Text;
     studentId : Nat;
@@ -135,7 +151,7 @@ actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
-  // ── UserProfile (AccessControl-based identity) ──────────────────────────────
+  // UserProfile (AccessControl-based identity) ──────────────
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
@@ -158,7 +174,7 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  // ── Admin Authentication (token-based) ─────────────────────────────────────
+  // ADMIN AUTHENTICATION (token-based) ──────────────────────────
 
   public shared ({ caller }) func login(username : Text, password : Text) : async Text {
     if (username == adminUsername and password == adminPassword) {
@@ -185,98 +201,83 @@ actor {
     adminSessions.remove(token);
   };
 
-  // ── Student OTP Authentication ──────────────────────────────────────────────
+  // STUDENT AUTHENTICATION (password-based) ──────────────────────────
 
-  // Public: anyone can request an OTP for a mobile number
-  public shared ({ caller }) func requestOtp(mobileNumber : Text) : async () {
+  public shared ({ caller }) func registerStudent(mobileNumber : Text, password : Text) : async () {
+    if (mobileNumber.size() != 10) {
+      Runtime.trap("Mobile number must be 10 digits");
+    };
+
     let existingStudent = students.values().find(
       func(student) { student.mobileNumber == mobileNumber }
     );
 
-    let otp = await generateOtp();
     switch (existingStudent) {
+      case (?_) { Runtime.trap("Mobile number already registered") };
       case (null) {
         let student : Student = {
           id = nextStudentId;
           mobileNumber;
-          otp = ?otp;
+          password;
+          otp = null;
           profilePhotoBase64 = null;
           registeredAt = Time.now();
         };
         students.add(nextStudentId, student);
         nextStudentId += 1;
       };
-      case (?student) {
-        let updatedStudent = { student with otp = ?otp };
-        students.add(student.id, updatedStudent);
-      };
     };
   };
 
-  // Public: anyone can verify OTP (authentication step)
-  public shared ({ caller }) func verifyOtp(mobileNumber : Text, otp : Text) : async (Text, Text) {
-    let studentOpt = students.values().find(
-      func(student) { student.mobileNumber == mobileNumber }
-    );
-
-    switch (studentOpt) {
+  public shared ({ caller }) func studentLogin(mobileNumber : Text, password : Text) : async Text {
+    switch (students.values().find(func(student) { student.mobileNumber == mobileNumber })) {
       case (null) { Runtime.trap("Student not found") };
       case (?student) {
-        switch (student.otp) {
-          case (?studentOtp) {
-            if (studentOtp == otp) {
-              let token = await generateToken();
-              let session : StudentSession = {
-                token;
-                studentId = student.id;
-                expiration = Time.now() + 3600_000_000_000;
-              };
-              studentSessions.add(token, session);
-
-              let updatedStudent = { student with otp = null };
-              students.add(student.id, updatedStudent);
-
-              return (token, student.mobileNumber);
-            } else {
-              Runtime.trap("Invalid OTP");
-            };
-          };
-          case (null) { Runtime.trap("No OTP requested") };
+        if (student.password != password) {
+          Runtime.trap("Invalid password");
         };
+
+        let token = await generateToken();
+        let session : StudentSession = {
+          token;
+          studentId = student.id;
+          expiration = Time.now() + 3600_000_000_000;
+        };
+        studentSessions.add(token, session);
+        token;
       };
     };
   };
 
-  // Student must hold a valid student session token
   public shared ({ caller }) func studentLogout(token : Text) : async () {
     studentSessions.remove(token);
   };
 
-  // ── Test Management (admin-only via token) ──────────────────────────────────
+  // TEST MANAGEMENT (admin-only via token) ───────────────────────────
 
-  public shared ({ caller }) func addTest(token : Text, title : Text, category : Text, questions : [Question], price : Nat, negativeMarkValue : Float) : async () {
+  public shared ({ caller }) func addTest(token : Text, title : Text, questions : [Question], price : Nat, negativeMarkValue : Float, category : ExamCategory) : async () {
     validateAdminSession(token);
     let id = tests.size() + 1;
     let test : Test = {
       id;
       title;
-      category;
       questions;
       price;
       negativeMarkValue;
+      category;
     };
     tests.add(id, test);
   };
 
-  public shared ({ caller }) func updateTest(token : Text, id : Nat, title : Text, category : Text, questions : [Question], price : Nat, negativeMarkValue : Float) : async () {
+  public shared ({ caller }) func updateTest(token : Text, id : Nat, title : Text, questions : [Question], price : Nat, negativeMarkValue : Float, category : ExamCategory) : async () {
     validateAdminSession(token);
     let test : Test = {
       id;
       title;
-      category;
       questions;
       price;
       negativeMarkValue;
+      category;
     };
     tests.add(id, test);
   };
@@ -286,7 +287,32 @@ actor {
     tests.remove(id);
   };
 
-  // ── Ranker Management (admin-only via token) ────────────────────────────────
+  public query ({ caller }) func getTestById(id : Nat) : async Test {
+    switch (tests.get(id)) {
+      case (null) { Runtime.trap("Test not found") };
+      case (?test) { test };
+    };
+  };
+
+  // ADMIN-ONLY: generate questions (requires valid admin session)
+  public shared ({ caller }) func generateQuestions(token : Text, topic : Text, difficulty : Text) : async [Question] {
+    validateAdminSession(token);
+    let questions = Array.repeat(
+      {
+        question = "Sample question about " # topic # " (" # difficulty # ")";
+        options = ["Option 1", "Option 2", "Option 3", "Option 4"];
+        answer = "Option 1";
+        explanation = ?("This is a sample explanation for the correct answer.");
+        questionHi = ?("नमूना प्रश्न " # topic # " (" # difficulty # ") के बारे में");
+        optionsHi = ?["विकल्प 1", "विकल्प 2", "विकल्प 3", "विकल्प 4"];
+        explanationHi = ?("यह सही उत्तर के लिए नमूना स्पष्टीकरण है।");
+      },
+      5,
+    );
+    questions;
+  };
+
+  // RANKER MANAGEMENT (admin-only via token) ───────────────────────────
 
   public shared ({ caller }) func addRanker(token : Text, studentName : Text, examCategory : Text, score : Nat) : async () {
     validateAdminSession(token);
@@ -306,6 +332,7 @@ actor {
     validateAdminSession(token);
     let filtered = rankers.filter(func(_, r) { r.rank != rank });
     rankers.clear();
+
     let newRankers = Map.fromArray<Nat, Ranker>(filtered.toArray());
     for ((id, ranker) in newRankers.entries()) {
       rankers.add(id, ranker);
@@ -313,9 +340,9 @@ actor {
     reRank();
   };
 
-  // ── Contact Submissions ─────────────────────────────────────────────────────
+  // CONTACT SUBMISSIONS ───────────────────────────
 
-  // Public: anyone can submit a contact form
+  // anyone can submit a contact form
   public shared ({ caller }) func submitContact(name : Text, email : Text, message : Text) : async () {
     let submission = {
       name;
@@ -327,15 +354,9 @@ actor {
     nextContactId += 1;
   };
 
-  // Admin-only: only admins may read contact submissions
-  public query ({ caller }) func getContactSubmissionsUser(token : Text) : async [ContactSubmission] {
-    validateAdminSession(token);
-    contactSubmissions.values().toArray();
-  };
+  // SLIDER MANAGEMENT (admin-only via token) ──────
 
-  // ── Slider Management (admin-only via token) ───────────────────────────────
-
-  // Public: anyone can view sliders
+  // anyone can view sliders
   public query ({ caller }) func getSliders() : async [Slider] {
     sliders.values().toArray();
   };
@@ -356,9 +377,9 @@ actor {
     sliders.remove(id);
   };
 
-  // ── Current Affairs Management (admin-only via token) ───────────────────────
+  // CURRENT AFFAIRS MANAGEMENT (admin-only via token) ──────
 
-  // Public: anyone can view current affairs
+  // anyone can view current affairs
   public query ({ caller }) func getCurrentAffairs() : async [CurrentAffairs] {
     currentAffairs.values().toArray();
   };
@@ -379,9 +400,9 @@ actor {
     currentAffairs.remove(id);
   };
 
-  // ── Newspaper Management (admin-only via token) ─────────────────────────────
+  // NEWSPAPER MANAGEMENT (admin-only via token) ──────
 
-  // Public: anyone can view newspapers
+  // anyone can view newspapers
   public query ({ caller }) func getNewspapers() : async [Newspaper] {
     newspapers.values().toArray();
   };
@@ -402,7 +423,7 @@ actor {
     newspapers.remove(id);
   };
 
-  // ── Student Profile Management (student session required) ───────────────────
+  // STUDENT PROFILE MANAGEMENT (student session required) ──────
 
   public query ({ caller }) func getStudentProfile(token : Text) : async ?Student {
     let studentSession = validateStudentSession(token);
@@ -426,42 +447,17 @@ actor {
     students.values().toArray();
   };
 
-  // ── Public Read Functions ───────────────────────────────────────────────────
+  // PUBLIC READ FUNCTIONS ───────────────────────────────────────
 
   public query ({ caller }) func getTests() : async [Test] {
     tests.values().toArray();
-  };
-
-  public query ({ caller }) func getTestById(id : Nat) : async Test {
-    switch (tests.get(id)) {
-      case (null) { Runtime.trap("Test not found") };
-      case (?test) { test };
-    };
-  };
-
-  // Admin-only: generate questions (requires valid admin session)
-  public shared ({ caller }) func generateQuestions(token : Text, topic : Text, difficulty : Text) : async [Question] {
-    validateAdminSession(token);
-    let questions = Array.repeat(
-      {
-        question = "Sample question about " # topic # " (" # difficulty # ")";
-        options = ["Option 1", "Option 2", "Option 3", "Option 4"];
-        answer = "Option 1";
-        explanation = ?("This is a sample explanation for the correct answer.");
-        questionHi = ?("नमूना प्रश्न " # topic # " (" # difficulty # ") के बारे में");
-        optionsHi = ?["विकल्प 1", "विकल्प 2", "विकल्प 3", "विकल्प 4"];
-        explanationHi = ?("यह सही उत्तर के लिए नमूना स्पष्टीकरण है।");
-      },
-      5,
-    );
-    questions;
   };
 
   public query ({ caller }) func getTopRankers() : async [Ranker] {
     rankers.values().toArray().sort();
   };
 
-  // ── Private Helpers ─────────────────────────────────────────────────────────
+  // PRIVATE HELPERS ───────────────────────────────────────
 
   func validateAdminSession(token : Text) {
     switch (adminSessions.get(token)) {
@@ -490,12 +486,6 @@ actor {
     let random = Random.crypto();
     let token = (await* random.nat64()).toText();
     token;
-  };
-
-  func generateOtp() : async Text {
-    let random = Random.crypto();
-    let otp = ((await* random.nat64()).toNat() % 900_000 + 100_000).toText();
-    otp;
   };
 
   func reRank() {

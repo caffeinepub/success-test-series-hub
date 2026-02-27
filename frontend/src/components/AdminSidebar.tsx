@@ -12,6 +12,7 @@ import {
   Newspaper,
   BookOpen,
   Users,
+  CreditCard,
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -21,6 +22,7 @@ interface AdminSidebarProps {
 
 const navItems = [
   { path: '/admin/tests', label: 'Tests', icon: ClipboardList },
+  { path: '/admin/paid-tests', label: 'Paid Tests', icon: CreditCard },
   { path: '/admin/rankers', label: 'Rankers', icon: Trophy },
   { path: '/admin/contacts', label: 'Contact Submissions', icon: MessageSquare },
   { path: '/admin/sliders', label: 'Manage Sliders', icon: Image },

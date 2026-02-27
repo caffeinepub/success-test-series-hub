@@ -1,207 +1,76 @@
 {
   "kind": "build_request",
-  "title": "Add Image Slider, Daily Sections, OTP Login, Student Profile, Bilingual Tests, Bank Details & Admin Enhancements",
-  "projectName": "Success Test Series Hub",
+  "title": "Student Login with Mobile Number and Password",
+  "projectName": "STS Hub",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-43",
-      "text": "Add a homepage image slider (poster carousel) below the header/hero on the public-facing site. Display uploaded poster images as full-width slides with Prev/Next navigation controls and auto-advance. If no posters are uploaded yet, show a placeholder banner. Backend must store slider images as records with an id, imageUrl (Text), and title (optional Text). Expose getSliders() query and addSlider(token, imageUrl, title) / deleteSlider(token, id) admin-authenticated update functions.",
-      "target": "both",
+      "id": "REQ-1",
+      "text": "Update the backend student authentication to support password-based login: add a password field to the Student data type, provide a registerStudent function that accepts mobile number and password, and provide a studentLogin function that verifies mobile number + password and returns a session token.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-5"
         ],
         "quotes": [
-          "Home Slider: होमपेज के सबसे ऊपर एक इमेज स्लाइडर (Poster) जोड़ें।"
+          "Student ko login ke liye mobile no. Or password option chahiye"
         ]
       },
       "acceptanceCriteria": [
-        "A sliding poster carousel is visible on the homepage above or within the hero section.",
-        "Prev/Next buttons advance or retreat through slides.",
-        "Backend exposes getSliders(), addSlider(), and deleteSlider() functions.",
-        "getSliders() returns all stored slider records with id, imageUrl, and optional title.",
-        "addSlider() and deleteSlider() validate the admin session token and reject if invalid.",
-        "If no slides exist, a placeholder graphic or message is shown instead of an empty carousel."
+        "Student data type includes a hashed or plaintext password field",
+        "registerStudent accepts mobileNumber and password parameters",
+        "studentLogin accepts mobileNumber and password and returns a session token on success",
+        "studentLogin returns an error if credentials are invalid"
       ]
     },
     {
-      "id": "REQ-44",
-      "text": "Add a 'Manage Sliders' panel to the Admin Dashboard sidebar. The panel must display a list of current poster slides (thumbnail, title, delete button) and provide an 'Add Slider' form with a URL input and optional title field. On save, call addSlider(); on delete, call deleteSlider(). Refresh the list after each mutation.",
+      "id": "REQ-2",
+      "text": "Add React Query hooks (useStudentLogin, useStudentRegister) in useQueries.ts that call the new backend studentLogin and registerStudent functions.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-5"
         ],
         "quotes": [
-          "एडमिन पैनल में 'Manage Sliders' का विकल्प दें ताकि मैं खुद फोटो अपलोड/डिलीट कर सकूँ।"
+          "Student ko login ke liye mobile no. Or password option chahiye"
         ]
       },
       "acceptanceCriteria": [
-        "Admin sidebar includes a 'Manage Sliders' navigation link.",
-        "The panel lists all current slides with thumbnail previews and delete buttons.",
-        "An 'Add Slider' form accepts an image URL and optional title.",
-        "Saving calls addSlider() and the list refreshes automatically.",
-        "Deleting calls deleteSlider() and the list refreshes automatically."
+        "useStudentLogin mutation calls the backend studentLogin with mobileNumber and password",
+        "useStudentRegister mutation calls the backend registerStudent with mobileNumber and password",
+        "On successful login, session token and student name are stored via useStudentAuth"
       ]
     },
     {
-      "id": "REQ-45",
-      "text": "Add a 'Daily Current Affairs' section on the homepage that fetches and displays current affairs entries (date + headline text) from the backend. Also add a 'Daily Newspaper' section that displays a list of newspaper entries (date + URL/link) from the backend. Backend must store current affairs entries with id, date (Text), and content (Text), and newspaper entries with id, date (Text), and link (Text). Expose getCurrentAffairs() and getNewspapers() query functions. Expose admin-authenticated addCurrentAffairs(token, date, content), deleteCurrentAffairs(token, id), addNewspaper(token, date, link), and deleteNewspaper(token, id) update functions.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Daily Sections: होमपेज पर 'Daily Current Affairs' का एक बॉक्स और 'Daily Newspaper' (PDF/Link के लिए) का सेक्शन जोड़ें।"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Homepage displays a 'Daily Current Affairs' box showing entries with date and headline.",
-        "Homepage displays a 'Daily Newspaper' section showing entries with date and a clickable link.",
-        "Backend exposes getCurrentAffairs() returning all entries sorted by date descending.",
-        "Backend exposes getNewspapers() returning all entries sorted by date descending.",
-        "addCurrentAffairs(), deleteCurrentAffairs(), addNewspaper(), deleteNewspaper() validate admin session.",
-        "Sections show a graceful empty state when no entries exist."
-      ]
-    },
-    {
-      "id": "REQ-46",
-      "text": "Add a 'Manage Current Affairs' and a 'Manage Daily Newspaper' panel to the Admin Dashboard sidebar. Each panel must list existing entries with date/content and a delete button. Each panel must have an 'Add' form. For Current Affairs: date and content text fields. For Newspaper: date and URL/link fields. On save call the respective add function; on delete call the respective delete function. Refresh lists after each mutation.",
+      "id": "REQ-3",
+      "text": "Replace the existing OTP-based StudentLogin page (frontend/src/pages/StudentLogin.tsx) with a mobile number + password login form. The page should have two tabs or toggle options: 'Login' (mobile number + password fields) and 'Register' (mobile number + password + confirm password fields). On successful login, navigate to the student dashboard.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-5"
         ],
         "quotes": [
-          "Admin Update: मेरे एडमिन पैनल के साइडबार में इन सब चीजों को मैनेज करने के लिए नए बटन जोड़ें।"
+          "Student ko login ke liye mobile no. Or password option chahiye"
         ]
       },
       "acceptanceCriteria": [
-        "Admin sidebar includes 'Manage Current Affairs' and 'Manage Daily Newspaper' navigation links.",
-        "Each panel lists existing entries with delete buttons.",
-        "Add forms accept the appropriate fields and call the corresponding backend function.",
-        "Lists refresh automatically after each add or delete."
-      ]
-    },
-    {
-      "id": "REQ-47",
-      "text": "Replace the existing username/password-based student login with a Mobile Number + OTP login system. On the /student/login page: show a mobile number input and a 'Send OTP' button. After the user submits their mobile number, call the backend requestOtp(mobileNumber) function which generates and stores a 6-digit OTP tied to the mobile number (simulated — no real SMS). Then show an OTP input field and 'Verify OTP' button. Calling verifyOtp(mobileNumber, otp) on the backend validates the OTP, creates or retrieves the student account by mobile number, and returns a session token and student display name. On success, store the token in localStorage and redirect to /student/dashboard. On failure, show an inline error. Remove the old registerStudent and studentLogin password-based backend functions (or keep them deprecated) and add requestOtp() and verifyOtp() functions.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "OTP Login & Profile: पासवर्ड हटाकर Mobile Number + OTP लॉगिन सिस्टम चालू करें"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Student login page shows a mobile number input and 'Send OTP' button.",
-        "After sending OTP, an OTP input and 'Verify OTP' button appear.",
-        "Backend requestOtp(mobileNumber) stores a simulated 6-digit OTP tied to the number.",
-        "Backend verifyOtp(mobileNumber, otp) validates the OTP and returns a session token + student name.",
-        "On successful verification, token is stored in localStorage and student is redirected to /student/dashboard.",
-        "On OTP mismatch, an inline error message is shown.",
-        "Student accounts are identified by mobile number (auto-created on first login)."
-      ]
-    },
-    {
-      "id": "REQ-48",
-      "text": "Add a Student Profile section accessible from the Student Dashboard at /student/dashboard. The profile section must display the student's mobile number and a circular profile photo (or a placeholder avatar if none uploaded). Include an 'Upload Photo' button that allows the student to select an image file; store the photo as a base64-encoded Text in the backend against their student record. Expose getStudentProfile(token) query and updateStudentProfilePhoto(token, photoBase64) update function on the backend.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Student Profile: छात्रों के लिए एक 'My Profile' सेक्शन बनाएं जहां वे अपनी डिटेल्स देख सकें और अपनी प्रोफाइल फोटो (Picture) अपलोड कर सकें।"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Student Dashboard includes a 'My Profile' section.",
-        "Profile displays the student's mobile number and a circular profile photo or placeholder avatar.",
-        "An 'Upload Photo' button opens a file picker and sends the selected image as base64 to updateStudentProfilePhoto().",
-        "After upload, the profile photo updates immediately.",
-        "Backend getStudentProfile(token) returns student mobile number and stored photoBase64.",
-        "Backend updateStudentProfilePhoto(token, photoBase64) validates the student session and saves the photo."
-      ]
-    },
-    {
-      "id": "REQ-49",
-      "text": "Add a 'Students' management panel to the Admin Dashboard. Display a table of all registered students showing their mobile number and profile photo (rendered as a small circular thumbnail if available, otherwise a placeholder). Expose a backend admin query getStudents(token) that returns all student records including mobile number and photoBase64. The table should be read-only (no edit or delete).",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Admin View: एडमिन पैनल में मुझे छात्रों की प्रोफाइल फोटो और मोबाइल नंबर दिखने चाहिए।"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin sidebar includes a 'Students' navigation link.",
-        "The panel displays a table with columns: Mobile Number and Profile Photo.",
-        "Profile photos are rendered as small circular thumbnails; a placeholder icon is shown if no photo is set.",
-        "Backend getStudents(token) validates the admin session and returns all student records.",
-        "The table is read-only with no edit or delete actions."
-      ]
-    },
-    {
-      "id": "REQ-50",
-      "text": "Add negative marking support to tests. Extend the backend Test record to include a negativeMarkValue field (Float, default 0.0). Update addTest(), updateTest(), getTests(), and getTestById() to accept and return this field. In the Admin TestFormModal, add a 'Negative Mark per Wrong Answer' input (e.g., -0.33, -0.25, 0). Display the negative marking value on each test card in the Free Tests section. In the TestTakingModal, calculate and display the final score applying negative marks for wrong answers.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Bilingual Free Tests: टेस्ट सीरीज में Hindi और English दोनों भाषाओं का सपोर्ट दें",
-          "Negative Mark per wrong answer: -0.33"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend Test record includes a negativeMarkValue field (Float, default 0.0).",
-        "addTest() and updateTest() accept negativeMarkValue; getTests() and getTestById() return it.",
-        "Admin TestFormModal has a 'Negative Mark per Wrong Answer' numeric input.",
-        "Each test card in the Free Tests section shows the negative marking value (e.g., 'Negative: -0.33 per wrong answer').",
-        "TestTakingModal computes score = (correct × 1) + (wrong × negativeMarkValue) and displays it after submission."
-      ]
-    },
-    {
-      "id": "REQ-51",
-      "text": "Display bank payment details in the Paid Test Series section. Below the plan cards, add a clearly styled 'Payment Details' box showing: Account Number: 444418210022399, IFSC Code: BKID0004444, Account Holder Name: Sachin Kumar. Style the box to stand out (e.g., a gold-bordered card) and include a note instructing students to transfer the payment and contact the admin for activation.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "A/C: 444418210022399 | IFSC: BKID0004444 | Name: Sachin Kumar"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Paid Test Series section includes a 'Payment Details' card below the plan cards.",
-        "The card displays Account Number: 444418210022399, IFSC: BKID0004444, Name: Sachin Kumar.",
-        "The card is visually distinct (e.g., gold border or highlighted background).",
-        "A note instructs students to transfer and contact admin for activation."
+        "Login form has Mobile Number and Password fields",
+        "Register form has Mobile Number, Password, and Confirm Password fields",
+        "Password mismatch on registration shows an inline error",
+        "Successful login stores session token and redirects to student dashboard",
+        "Failed login shows an error message (e.g., 'Invalid mobile number or password')",
+        "Form fields are validated (non-empty, mobile number is numeric and 10 digits)"
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
-    "OTP delivery is simulated (no real SMS gateway integration).",
-    "Profile photos must be stored as base64 Text in the Motoko backend — no external file storage.",
-    "All new backend functions must follow the existing single-actor pattern in backend/main.mo.",
-    "Maintain existing dark navy/gold/green visual theme established in earlier features."
+    "Do not break existing admin authentication flow",
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui"
   ],
   "nonGoals": [
-    "Real SMS OTP delivery via Twilio or any external SMS provider.",
-    "Real payment gateway integration (Razorpay, UPI, Stripe).",
-    "External image hosting or CDN for slider posters.",
-    "Changing existing test bilingual support (already implemented).",
-    "Any changes to the existing admin login credentials."
+    "OTP-based login (replacing entirely with password-based flow)",
+    "Social login or Internet Identity for students",
+    "Email-based login"
   ],
   "imageRequirements": {
     "required": [],

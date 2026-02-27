@@ -1,6 +1,9 @@
 import React from 'react';
-import { Check, Star, Zap, Crown, CreditCard, Building2 } from 'lucide-react';
+import { Check, Star, Zap, Crown } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
+import { useGetTests } from '../hooks/useQueries';
+import { ExamCategory } from '../backend';
+import { getExamCategoryLabel, EXAM_CATEGORY_COLORS } from '../utils/examCategories';
 
 const plans = [
   {
@@ -35,6 +38,13 @@ const plans = [
 
 export default function PaidTestSeries() {
   const { t } = useTranslation();
+  const { data: allTests } = useGetTests();
+
+  // Filter paid tests (price > 0)
+  const paidTests = React.useMemo(() => {
+    if (!allTests) return [];
+    return allTests.filter((test) => Number(test.price) > 0);
+  }, [allTests]);
 
   return (
     <section id="paid-tests" className="py-16 px-4">
@@ -101,44 +111,59 @@ export default function PaidTestSeries() {
           })}
         </div>
 
-        {/* Bank Payment Details */}
-        <div
-          className="rounded-2xl border-2 p-6"
-          style={{
-            borderColor: '#d97706',
-            background: 'linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.04) 100%)',
-          }}
-        >
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gold-500/20 border border-gold-500/40 flex items-center justify-center shrink-0">
-              <Building2 className="w-6 h-6 text-gold-400" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-3">
-                <CreditCard className="w-4 h-4 text-gold-400" />
-                <h3 className="text-gold-400 font-bold font-rajdhani text-lg">Payment Details</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                <div className="bg-navy-800/60 rounded-lg px-4 py-3 border border-navy-600">
-                  <p className="text-navy-400 text-xs mb-1">Account Number</p>
-                  <p className="text-white font-mono font-semibold text-sm">444418210022399</p>
-                </div>
-                <div className="bg-navy-800/60 rounded-lg px-4 py-3 border border-navy-600">
-                  <p className="text-navy-400 text-xs mb-1">IFSC Code</p>
-                  <p className="text-white font-mono font-semibold text-sm">BKID0004444</p>
-                </div>
-                <div className="bg-navy-800/60 rounded-lg px-4 py-3 border border-navy-600">
-                  <p className="text-navy-400 text-xs mb-1">Account Holder</p>
-                  <p className="text-white font-semibold text-sm">Sachin Kumar</p>
-                </div>
-              </div>
-              <p className="text-navy-300 text-sm flex items-start gap-2">
-                <span className="text-gold-400 font-bold shrink-0">Note:</span>
-                Transfer the amount and contact admin for plan activation. Please share your mobile number and payment screenshot.
-              </p>
+        {/* Available Paid Tests */}
+        {paidTests.length > 0 && (
+          <div>
+            <h3 className="text-white font-bold font-rajdhani text-xl mb-4 flex items-center gap-2">
+              <span className="w-1.5 h-5 rounded-full bg-gold inline-block" />
+              Available Paid Tests
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {paidTests.map((test) => {
+                const catColors = EXAM_CATEGORY_COLORS[test.category as ExamCategory];
+                const catLabel = getExamCategoryLabel(test.category as ExamCategory);
+                return (
+                  <div
+                    key={test.id.toString()}
+                    className="rounded-xl border p-4 flex items-start gap-4"
+                    style={{
+                      borderColor: catColors?.color ?? '#f59e0b',
+                      background: catColors?.bg ?? 'rgba(245,158,11,0.08)',
+                    }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold"
+                          style={{
+                            color: catColors?.color ?? '#f59e0b',
+                            background: `${catColors?.color ?? '#f59e0b'}22`,
+                          }}
+                        >
+                          {catLabel}
+                        </span>
+                        <span className="text-xs text-navy-400">
+                          {test.questions.length} {t('questions')}
+                        </span>
+                      </div>
+                      <p className="text-white font-semibold text-sm leading-snug truncate">
+                        {test.title}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p
+                        className="text-lg font-bold"
+                        style={{ color: catColors?.color ?? '#f59e0b' }}
+                      >
+                        ₹{Number(test.price)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

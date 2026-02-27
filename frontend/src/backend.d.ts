@@ -24,17 +24,11 @@ export interface Newspaper {
     date: string;
     link: string;
 }
-export interface ContactSubmission {
-    name: string;
-    email: string;
-    message: string;
-    timestamp: bigint;
-}
 export interface Test {
     id: bigint;
     title: string;
     negativeMarkValue: number;
-    category: string;
+    category: ExamCategory;
     questions: Array<Question>;
     price: bigint;
 }
@@ -59,9 +53,18 @@ export interface UserProfile {
 export interface Student {
     id: bigint;
     otp?: string;
+    password: string;
     mobileNumber: string;
     profilePhotoBase64?: string;
     registeredAt: Time;
+}
+export enum ExamCategory {
+    ssc = "ssc",
+    railway = "railway",
+    bpsc = "bpsc",
+    upsc = "upsc",
+    banking = "banking",
+    stateExams = "stateExams"
 }
 export enum UserRole {
     admin = "admin",
@@ -73,7 +76,7 @@ export interface backendInterface {
     addNewspaper(token: string, date: string, link: string): Promise<void>;
     addRanker(token: string, studentName: string, examCategory: string, score: bigint): Promise<void>;
     addSlider(token: string, imageUrl: string, title: string | null): Promise<void>;
-    addTest(token: string, title: string, category: string, questions: Array<Question>, price: bigint, negativeMarkValue: number): Promise<void>;
+    addTest(token: string, title: string, questions: Array<Question>, price: bigint, negativeMarkValue: number, category: ExamCategory): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     deleteCurrentAffairs(token: string, id: bigint): Promise<void>;
     deleteNewspaper(token: string, id: bigint): Promise<void>;
@@ -83,7 +86,6 @@ export interface backendInterface {
     generateQuestions(token: string, topic: string, difficulty: string): Promise<Array<Question>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getContactSubmissionsUser(token: string): Promise<Array<ContactSubmission>>;
     getCurrentAffairs(): Promise<Array<CurrentAffairs>>;
     getNewspapers(): Promise<Array<Newspaper>>;
     getSliders(): Promise<Array<Slider>>;
@@ -96,12 +98,12 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     login(username: string, password: string): Promise<string>;
     logout(token: string): Promise<void>;
-    requestOtp(mobileNumber: string): Promise<void>;
+    registerStudent(mobileNumber: string, password: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    studentLogin(mobileNumber: string, password: string): Promise<string>;
     studentLogout(token: string): Promise<void>;
     submitContact(name: string, email: string, message: string): Promise<void>;
     updateStudentProfilePhoto(token: string, photoBase64: string): Promise<void>;
-    updateTest(token: string, id: bigint, title: string, category: string, questions: Array<Question>, price: bigint, negativeMarkValue: number): Promise<void>;
+    updateTest(token: string, id: bigint, title: string, questions: Array<Question>, price: bigint, negativeMarkValue: number, category: ExamCategory): Promise<void>;
     validateSession(token: string): Promise<boolean>;
-    verifyOtp(mobileNumber: string, otp: string): Promise<[string, string]>;
 }

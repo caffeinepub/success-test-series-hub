@@ -8,6 +8,7 @@ import AdminSliders from './AdminSliders';
 import AdminCurrentAffairs from './AdminCurrentAffairs';
 import AdminNewspapers from './AdminNewspapers';
 import AdminStudents from './AdminStudents';
+import AdminPaidTests from './AdminPaidTests';
 
 interface AdminDashboardProps {
   onNavigate: (page: string) => void;
@@ -37,6 +38,8 @@ export default function AdminDashboard({ onNavigate, currentPath }: AdminDashboa
     switch (currentPath) {
       case '/admin/tests':
         return <AdminTests />;
+      case '/admin/paid-tests':
+        return <AdminPaidTests />;
       case '/admin/rankers':
         return <AdminRankers />;
       case '/admin/contacts':
